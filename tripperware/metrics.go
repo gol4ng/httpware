@@ -12,8 +12,8 @@ import (
 
 func Metrics(config *metrics.Config) httpware.Tripperware {
 	return func(next http.RoundTripper) http.RoundTripper {
-		return httpware.RoundTripperFunc(func(req *http.Request) (resp *http.Response, err error) {
-			handlerName := config.HandlerNameExtractor(req)
+		return httpware.RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
+			handlerName := config.IdentifierProvider(req)
 			if !config.DisableMeasureInflight {
 				config.Recorder.AddInflightRequests(req.Context(), handlerName, 1)
 				defer config.Recorder.AddInflightRequests(req.Context(), handlerName, -1)

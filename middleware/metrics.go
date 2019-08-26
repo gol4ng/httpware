@@ -14,7 +14,7 @@ func Metrics(config *metrics.Config) httpware.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
 			writerInterceptor := NewResponseWriterInterceptor(writer)
-			handlerName := config.HandlerNameExtractor(req)
+			handlerName := config.IdentifierProvider(req)
 			if !config.DisableMeasureInflight {
 				config.Recorder.AddInflightRequests(req.Context(), handlerName, 1)
 				defer config.Recorder.AddInflightRequests(req.Context(), handlerName, -1)

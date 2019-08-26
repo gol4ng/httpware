@@ -9,6 +9,10 @@ import (
 	"github.com/gol4ng/httpware"
 )
 
+// =====================================================================================================================
+// =============================== use those examples when declaring an http CLIENT ====================================
+// =====================================================================================================================
+
 func ExampleTripperwareStack_WithDefaultTransport() {
 	// create a tripperware that adds a custom header on each http-client request
 	addCustomRequestHeader := func(t http.RoundTripper) http.RoundTripper {

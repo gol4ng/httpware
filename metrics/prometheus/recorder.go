@@ -2,8 +2,9 @@ package prometheus
 
 import (
 	"context"
-	"github.com/gol4ng/httpware/metrics"
 	"time"
+
+	"github.com/gol4ng/httpware/metrics"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -47,22 +48,21 @@ func NewRecorder(config Config) *Recorder {
 			Namespace: config.Prefix,
 			Subsystem: "http",
 			Name:      "request_duration_seconds",
-			Help:      "The latency of the HTTP requests.",
+			Help:      "The latency of the HTTP requests (in seconds).",
 			Buckets:   config.DurationBuckets,
-		}, []string{config.HandlerName, config.MethodLabel, config.StatusCodeLabel}),
+		}, []string{config.IdentifierLabel, config.MethodLabel, config.StatusCodeLabel}),
 		httpResponseSizeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: config.Prefix,
 			Subsystem: "http",
 			Name:      "response_size_bytes",
-			Help:      "The size of the HTTP responses.",
+			Help:      "The size of the HTTP responses (in bytes).",
 			Buckets:   config.SizeBuckets,
-		}, []string{config.HandlerName, config.MethodLabel, config.StatusCodeLabel}),
+		}, []string{config.IdentifierLabel, config.MethodLabel, config.StatusCodeLabel}),
 		httpRequestsInflight: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: config.Prefix,
 			Subsystem: "http",
 			Name:      "requests_inflight",
 			Help:      "The number of inflight requests being handled at the same time.",
-		}, []string{config.HandlerName}),
+		}, []string{config.IdentifierLabel}),
 	}
 }
-

@@ -7,7 +7,7 @@ type Config struct {
 	SplitStatus            bool
 	DisableMeasureSize     bool
 	DisableMeasureInflight bool
-	HandlerNameExtractor   func(req *http.Request) string
+	IdentifierProvider     func(req *http.Request) string
 }
 
 func NewConfig(recorder Recorder) *Config {
@@ -16,7 +16,7 @@ func NewConfig(recorder Recorder) *Config {
 		SplitStatus:            false,
 		DisableMeasureSize:     false,
 		DisableMeasureInflight: false,
-		HandlerNameExtractor: func(req *http.Request) string {
+		IdentifierProvider: func(req *http.Request) string {
 			return req.URL.String()
 		},
 	}

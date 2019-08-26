@@ -32,8 +32,8 @@ func (r *Recorder) ObserveHTTPRequestDuration(_ context.Context, id string, dura
 	r.httpRequestDurHistogram.WithLabelValues(id, method, code).Observe(duration.Seconds())
 }
 
-func (r *Recorder) ObserveHTTPResponseSize(_ context.Context, id string, sizeBytes int64, method, code string) {
-	r.httpResponseSizeHistogram.WithLabelValues(id, method, code).Observe(float64(sizeBytes))
+func (r *Recorder) ObserveHTTPResponseSize(_ context.Context, id string, responseSize int64, method, code string) {
+	r.httpResponseSizeHistogram.WithLabelValues(id, method, code).Observe(float64(responseSize))
 }
 
 func (r *Recorder) AddInflightRequests(_ context.Context, id string, quantity int) {

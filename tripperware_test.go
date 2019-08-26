@@ -24,7 +24,7 @@ func ExampleTripperwareStack_WithDefaultTransport() {
 	// create a tripperware that logs the request header on each call
 	logRequestHeaders := func(t http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
-			fmt.Println("http request headers : ", req.Header)
+			fmt.Println("http request headers :", req.Header)
 			return t.RoundTrip(req)
 		})
 	}
@@ -44,7 +44,7 @@ func ExampleTripperwareStack_WithDefaultTransport() {
 	_, _ = client.Get("fake-address.foo")
 
 	//Output:
-	//http request headers :  map[Custom-Header:[wonderful header value]]
+	//http request headers : map[Custom-Header:[wonderful header value]]
 }
 
 func ExampleTripperwareStack_WithCustomTransport() {
@@ -58,7 +58,7 @@ func ExampleTripperwareStack_WithCustomTransport() {
 	// create a tripperware that logs the request header on each call
 	logRequestHeaders := func(t http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
-			fmt.Println("http request headers : ", req.Header)
+			fmt.Println("http request headers :", req.Header)
 			return t.RoundTrip(req)
 		})
 	}
@@ -93,5 +93,5 @@ func ExampleTripperwareStack_WithCustomTransport() {
 	_, _ = client.Get("fake-address.foo")
 
 	//Output:
-	//http request headers :  map[Custom-Header:[wonderful header value]]
+	//http request headers : map[Custom-Header:[wonderful header value]]
 }

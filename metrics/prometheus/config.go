@@ -14,8 +14,8 @@ type Config struct {
 	// Registry is the registry that will be used by the recorder to store the metrics,
 	// if the default registry is not used then it will use the default one.
 	Registry prometheus.Registerer
-	// HandlerName is the name that will be set to the handler ID label, by default is `handler`.
-	HandlerName string
+	// IdentifierLabel is the name that will be set to the handler ID label, by default is `handler`.
+	IdentifierLabel string
 	// StatusCodeLabel is the name that will be set to the status code label, by default is `code`.
 	StatusCodeLabel string
 	// MethodLabel is the name that will be set to the method label, by default is `method`.
@@ -35,8 +35,8 @@ func (c *Config) defaults() {
 		c.Registry = prometheus.DefaultRegisterer
 	}
 
-	if c.HandlerName == "" {
-		c.HandlerName = "handler"
+	if c.IdentifierLabel == "" {
+		c.IdentifierLabel = "identifier"
 	}
 
 	if c.StatusCodeLabel == "" {

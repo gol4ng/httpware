@@ -7,7 +7,6 @@ import "net/http"
 type Middleware func(http.Handler) http.Handler
 type Middlewares []Middleware
 
-// MiddlewareStack allows you to stack multiple middlewares in a specific order
 // DecorateHandler will decorate a given http.Handler with the given middlewares created by MiddlewareStack()
 func (m Middlewares) DecorateHandler(handler http.Handler) http.Handler {
 	for _, middleware := range m {

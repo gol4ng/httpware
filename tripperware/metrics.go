@@ -12,9 +12,9 @@ import (
 
 func Metrics(config *metrics.Config) httpware.Tripperware {
 	return func(next http.RoundTripper) http.RoundTripper {
-		return httpware.RoundTripperFunc(func(req *http.Request) (resp *http.Response, err error) {
-			handlerName := config.HandlerNameExtractor(req)
-			if !config.DisableMeasureInflight {
+		return httpware.RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
+			handlerName := config.IdentifierProvider(req)
+			if config.MeasureInflightRequests {
 				config.Recorder.AddInflightRequests(req.Context(), handlerName, 1)
 				defer config.Recorder.AddInflightRequests(req.Context(), handlerName, -1)
 			}
@@ -29,12 +29,13 @@ func Metrics(config *metrics.Config) httpware.Tripperware {
 				}
 				code := strconv.Itoa(statusCode)
 				if !config.SplitStatus {
+					// modify status to only take first digit into account (201 -> 200; 404 -> 400; ...)
 					code = fmt.Sprintf("%dxx", statusCode/100)
 				}
 
 				config.Recorder.ObserveHTTPRequestDuration(req.Context(), handlerName, time.Since(start), req.Method, code)
 
-				if !config.DisableMeasureSize {
+				if config.ObserveResponseSize {
 					config.Recorder.ObserveHTTPResponseSize(req.Context(), handlerName, contentLength, req.Method, code)
 				}
 			}()

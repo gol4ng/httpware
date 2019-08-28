@@ -4,10 +4,42 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
+	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/gol4ng/httpware"
+	"github.com/gol4ng/httpware/mocks"
 )
+
+func TestRoundTripFunc_RoundTrip(t *testing.T) {
+	var roundTripperMock = &mocks.RoundTripper{}
+	var req *http.Request
+	var resp = &http.Response{
+		Status:           "OK",
+		StatusCode:       http.StatusOK,
+		ContentLength:    30,
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
+	// mock roundTripper calls
+	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
+	http.DefaultTransport = roundTripperMock
+
+	stack := httpware.TripperwareStack(func(tripper http.RoundTripper) http.RoundTripper {
+		assert.Equal(t, http.DefaultTransport, tripper)
+		return httpware.RoundTripFunc(func(r *http.Request) (*http.Response, error) {
+			assert.Equal(t, req, r)
+			return tripper.RoundTrip(r)
+		})
+	})
+
+	response, err := stack.DecorateRoundTripFunc(nil).RoundTrip(req)
+	assert.Equal(t, resp, response)
+	assert.Nil(t, err)
+}
 
 // =====================================================================================================================
 // =============================== use those examples when declaring an http CLIENT ====================================

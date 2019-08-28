@@ -34,6 +34,9 @@ func (t Tripperwares) DecorateRoundTripper(tripper http.RoundTripper) http.Round
 
 // DecorateRoundTripFunc will decorate a given RoundTripFunc with the given tripperware collection created by MiddlewareStack()
 func (t Tripperwares) DecorateRoundTripFunc(tripper RoundTripFunc) http.RoundTripper {
+	if tripper == nil {
+		return t.DecorateRoundTripper(http.DefaultTransport)
+	}
 	return t.DecorateRoundTripper(tripper)
 }
 

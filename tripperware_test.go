@@ -4,10 +4,87 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/gol4ng/httpware"
+	"github.com/gol4ng/httpware/mocks"
 )
+
+func TestTripperwares_DecorateRoundTripper(t *testing.T) {
+	req := &http.Request{}
+	resp := &http.Response{}
+
+	roundTripperMock := &mocks.RoundTripper{}
+	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
+
+	stack := httpware.TripperwareStack(func(tripper http.RoundTripper) http.RoundTripper {
+		assert.Equal(t, http.DefaultTransport, tripper)
+		return httpware.RoundTripFunc(func(r *http.Request) (*http.Response, error) {
+			assert.Equal(t, req, r)
+			// we already check that tripper == http.DefaultTransport
+			// so we can replace the call with the mocked one
+			return roundTripperMock.RoundTrip(r)
+		})
+	})
+
+	response, err := stack.DecorateRoundTripper(nil).RoundTrip(req)
+	assert.Equal(t, resp, response)
+	assert.Nil(t, err)
+}
+
+func TestTripperwares_DecorateRoundTripFunc_Default(t *testing.T) {
+	req := &http.Request{}
+	resp := &http.Response{}
+
+	roundTripperMock := &mocks.RoundTripper{}
+	roundTripperMock.On("RoundTrip", req).Return(resp, nil).Once()
+
+	stack := httpware.TripperwareStack(func(tripper http.RoundTripper) http.RoundTripper {
+		assert.Equal(t, http.DefaultTransport, tripper)
+		return httpware.RoundTripFunc(func(r *http.Request) (*http.Response, error) {
+			assert.Equal(t, req, r)
+			// we already check that tripper == http.DefaultTransport
+			// so we can replace the call with the mocked one
+			return roundTripperMock.RoundTrip(r)
+		})
+	})
+
+	response, err := stack.DecorateRoundTripFunc(nil).RoundTrip(req)
+	assert.Equal(t, resp, response)
+	assert.Nil(t, err)
+}
+
+func TestTripperwares_DecorateRoundTripFunc(t *testing.T) {
+	req := &http.Request{}
+	resp := &http.Response{}
+
+	roundTripperMock := &mocks.RoundTripper{}
+	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
+
+	roundTripperFuncCalled := false
+	roundTripperFunc := func(r *http.Request) (*http.Response, error) {
+		assert.Equal(t, req, r)
+		roundTripperFuncCalled = true
+		return resp, nil
+	}
+
+	stack := httpware.TripperwareStack(func(tripper http.RoundTripper) http.RoundTripper {
+		return httpware.RoundTripFunc(func(r *http.Request) (*http.Response, error) {
+			assert.Equal(t, req, r)
+			// we already check that tripper == http.DefaultTransport
+			// so we can replace the call with the mocked one
+			return tripper.RoundTrip(r)
+		})
+	})
+
+	response, err := stack.DecorateRoundTripFunc(roundTripperFunc).RoundTrip(req)
+	assert.Equal(t, resp, response)
+	assert.Nil(t, err)
+	assert.True(t, roundTripperFuncCalled)
+}
 
 // =====================================================================================================================
 // =============================== use those examples when declaring an http CLIENT ====================================

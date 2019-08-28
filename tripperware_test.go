@@ -36,7 +36,7 @@ func TestRoundTripFunc_RoundTrip(t *testing.T) {
 		})
 	})
 
-	response, err := stack.DecorateRoundTripFunc(nil).RoundTrip(req)
+	response, err := stack.DecorateRoundTripper(nil).RoundTrip(req)
 	assert.Equal(t, resp, response)
 	assert.Nil(t, err)
 }

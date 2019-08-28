@@ -26,7 +26,9 @@ func TestRoundTripFunc_RoundTrip(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	// mock roundTripper calls
 	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
+	baseTransport := http.DefaultTransport
 	http.DefaultTransport = roundTripperMock
+	defer func() { http.DefaultTransport = baseTransport }()
 
 	stack := httpware.TripperwareStack(func(tripper http.RoundTripper) http.RoundTripper {
 		assert.Equal(t, http.DefaultTransport, tripper)

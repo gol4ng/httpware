@@ -14,7 +14,11 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 type Tripperware func(http.RoundTripper) http.RoundTripper
 
 // DecorateClient will decorate a given http.Client with the tripperware
-func (t Tripperware) DecorateClient(client *http.Client) *http.Client {
+// will return a clone of client if clone arg is true
+func (t Tripperware) DecorateClient(client *http.Client, clone bool) *http.Client {
+	if clone {
+		client = cloneClient(client)
+	}
 	if client.Transport == nil {
 		client.Transport = http.DefaultTransport
 	}
@@ -31,13 +35,17 @@ func (t Tripperwares) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.DecorateRoundTripper(http.DefaultTransport).RoundTrip(req)
 }
 
-// DecorateClient will decorate a given http.Client with the given tripperware collection
-func (t Tripperwares) DecorateClient(client *http.Client) *http.Client {
+// DecorateClient will decorate a given http.Client with the tripperware collection
+// will return a clone of client if clone arg is true
+func (t Tripperwares) DecorateClient(client *http.Client, clone bool) *http.Client {
+	if clone {
+		client = cloneClient(client)
+	}
 	client.Transport = t.DecorateRoundTripper(client.Transport)
 	return client
 }
 
-// DecorateRoundTripper will decorate a given http.RoundTripper with the given tripperware collection
+// DecorateRoundTripper will decorate a given http.RoundTripper with the tripperware collection
 func (t Tripperwares) DecorateRoundTripper(tripper http.RoundTripper) http.RoundTripper {
 	if tripper == nil {
 		tripper = http.DefaultTransport
@@ -48,7 +56,7 @@ func (t Tripperwares) DecorateRoundTripper(tripper http.RoundTripper) http.Round
 	return tripper
 }
 
-// DecorateRoundTripFunc will decorate a given RoundTripFunc with the given tripperware collection
+// DecorateRoundTripFunc will decorate a given RoundTripFunc with the tripperware collection
 func (t Tripperwares) DecorateRoundTripFunc(tripper RoundTripFunc) http.RoundTripper {
 	if tripper == nil {
 		return t.DecorateRoundTripper(http.DefaultTransport)
@@ -59,4 +67,13 @@ func (t Tripperwares) DecorateRoundTripFunc(tripper RoundTripFunc) http.RoundTri
 // TripperwareStack allows to stack multi tripperware in order to decorate an http roundTripper
 func TripperwareStack(tripperwares ...Tripperware) Tripperwares {
 	return tripperwares
+}
+
+func cloneClient(client *http.Client) *http.Client {
+	return &http.Client{
+		Transport:     client.Transport,
+		CheckRedirect: client.CheckRedirect,
+		Jar:           client.Jar,
+		Timeout:       client.Timeout,
+	}
 }

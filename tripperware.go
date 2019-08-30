@@ -12,6 +12,16 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 // Tripperware represents an http client-side middleware (roundTripper middleware).
 type Tripperware func(http.RoundTripper) http.RoundTripper
+
+// DecorateClient will decorate a given http.Client with the tripperware
+func (t Tripperware) DecorateClient(client *http.Client) *http.Client {
+	if client.Transport == nil {
+		client.Transport = http.DefaultTransport
+	}
+	client.Transport = t(client.Transport)
+	return client
+}
+
 type Tripperwares []Tripperware
 
 // RoundTrip implements RoundTripper interface
@@ -21,7 +31,16 @@ func (t Tripperwares) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.DecorateRoundTripper(http.DefaultTransport).RoundTrip(req)
 }
 
-// DecorateRoundTripper will decorate a given http.RoundTripper with the given tripperware collection created by TripperwareStack()
+// DecorateClient will decorate a given http.Client with the given tripperware collection
+func (t Tripperwares) DecorateClient(client *http.Client) *http.Client {
+	if client.Transport == nil {
+		client.Transport = http.DefaultTransport
+	}
+	client.Transport = t.DecorateRoundTripper(client.Transport)
+	return client
+}
+
+// DecorateRoundTripper will decorate a given http.RoundTripper with the given tripperware collection
 func (t Tripperwares) DecorateRoundTripper(tripper http.RoundTripper) http.RoundTripper {
 	if tripper == nil {
 		tripper = http.DefaultTransport
@@ -32,7 +51,7 @@ func (t Tripperwares) DecorateRoundTripper(tripper http.RoundTripper) http.Round
 	return tripper
 }
 
-// DecorateRoundTripFunc will decorate a given RoundTripFunc with the given tripperware collection created by MiddlewareStack()
+// DecorateRoundTripFunc will decorate a given RoundTripFunc with the given tripperware collection
 func (t Tripperwares) DecorateRoundTripFunc(tripper RoundTripFunc) http.RoundTripper {
 	if tripper == nil {
 		return t.DecorateRoundTripper(http.DefaultTransport)

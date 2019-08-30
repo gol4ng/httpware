@@ -13,32 +13,6 @@ import (
 	"github.com/gol4ng/httpware/mocks"
 )
 
-func TestTripperware_DecorateClientClone(t *testing.T) {
-	req, _ := http.NewRequest("GET", "http://localhost/", nil)
-	resp := &http.Response{}
-
-	roundTripperMock := &mocks.RoundTripper{}
-	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
-
-	tripperware := httpware.Tripperware(func(tripper http.RoundTripper) http.RoundTripper {
-		assert.Equal(t, http.DefaultTransport, tripper)
-		return httpware.RoundTripFunc(func(r *http.Request) (*http.Response, error) {
-			assert.Equal(t, req, r)
-			// we already check that tripper == http.DefaultTransport
-			// so we can replace the call with the mocked one
-			return roundTripperMock.RoundTrip(r)
-		})
-	})
-
-	client := &http.Client{}
-	newClient := tripperware.DecorateClient(client, true)
-	assert.NotEqual(t, client, newClient)
-
-	response, err := newClient.Do(req)
-	assert.Equal(t, resp, response)
-	assert.Nil(t, err)
-}
-
 func TestTripperware_DecorateClient(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://localhost/", nil)
 	resp := &http.Response{}
@@ -56,13 +30,45 @@ func TestTripperware_DecorateClient(t *testing.T) {
 		})
 	})
 
-	client := &http.Client{}
-	client2 := tripperware.DecorateClient(client, false)
-	assert.Equal(t, client, client2)
+	t.Run("Clone", func(tt *testing.T) {
+		client := &http.Client{}
+		newClient := tripperware.DecorateClient(client, true)
+		assert.NotEqual(t, client, newClient)
 
-	response, err := client2.Do(req)
-	assert.Equal(t, resp, response)
-	assert.Nil(t, err)
+		response, err := newClient.Do(req)
+		assert.Equal(tt, resp, response)
+		assert.Nil(tt, err)
+	})
+
+	t.Run("Wrap", func(tt *testing.T) {
+		client := &http.Client{}
+		newClient := tripperware.DecorateClient(client, false)
+		assert.Equal(tt, client, newClient)
+
+		response, err := newClient.Do(req)
+		assert.Equal(tt, resp, response)
+		assert.Nil(tt, err)
+	})
+
+	t.Run("Clone Nil", func(tt *testing.T) {
+		newClient := tripperware.DecorateClient(nil, true)
+		assert.NotEqual(tt, http.DefaultClient, newClient)
+
+		response, err := newClient.Do(req)
+		assert.Equal(tt, resp, response)
+		assert.Nil(tt, err)
+	})
+
+	t.Run("Wrap Nil", func(tt *testing.T) {
+		newClient := tripperware.DecorateClient(nil, false)
+		assert.Equal(tt, http.DefaultClient, newClient)
+
+		response, err := newClient.Do(req)
+		assert.Equal(tt, resp, response)
+		assert.Nil(tt, err)
+	})
+
+	http.DefaultClient.Transport = http.DefaultTransport
 }
 
 func TestTripperwares_DecorateRoundTripper(t *testing.T) {
@@ -87,32 +93,6 @@ func TestTripperwares_DecorateRoundTripper(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestTripperwares_DecorateClientClone(t *testing.T) {
-	req, _ := http.NewRequest("GET", "http://localhost/", nil)
-	resp := &http.Response{}
-
-	roundTripperMock := &mocks.RoundTripper{}
-	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
-
-	stack := httpware.TripperwareStack(func(tripper http.RoundTripper) http.RoundTripper {
-		assert.Equal(t, http.DefaultTransport, tripper)
-		return httpware.RoundTripFunc(func(r *http.Request) (*http.Response, error) {
-			assert.Equal(t, req, r)
-			// we already check that tripper == http.DefaultTransport
-			// so we can replace the call with the mocked one
-			return roundTripperMock.RoundTrip(r)
-		})
-	})
-
-	client := &http.Client{}
-	client2 := stack.DecorateClient(client, true)
-	assert.NotEqual(t, client, client2)
-
-	response, err := client2.Do(req)
-	assert.Equal(t, resp, response)
-	assert.Nil(t, err)
-}
-
 func TestTripperwares_DecorateClient(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://localhost/", nil)
 	resp := &http.Response{}
@@ -130,14 +110,45 @@ func TestTripperwares_DecorateClient(t *testing.T) {
 		})
 	})
 
+	t.Run("Clone", func(tt *testing.T) {
+		client := &http.Client{}
+		client2 := stack.DecorateClient(client, true)
+		assert.NotEqual(t, client, client2)
 
-	client := &http.Client{}
-	client2 := stack.DecorateClient(client, false)
-	assert.Equal(t, client, client2)
+		response, err := client2.Do(req)
+		assert.Equal(t, resp, response)
+		assert.Nil(t, err)
+	})
 
-	response, err := client2.Do(req)
-	assert.Equal(t, resp, response)
-	assert.Nil(t, err)
+	t.Run("Wrap", func(tt *testing.T) {
+		client := &http.Client{}
+		client2 := stack.DecorateClient(client, false)
+		assert.Equal(t, client, client2)
+
+		response, err := client2.Do(req)
+		assert.Equal(t, resp, response)
+		assert.Nil(t, err)
+	})
+
+	t.Run("Clone Nil", func(tt *testing.T) {
+		client2 := stack.DecorateClient(nil, true)
+		assert.NotEqual(t, http.DefaultClient, client2)
+
+		response, err := client2.Do(req)
+		assert.Equal(t, resp, response)
+		assert.Nil(t, err)
+	})
+
+	t.Run("Wrap Nil", func(tt *testing.T) {
+		client2 := stack.DecorateClient(nil, false)
+		assert.Equal(t, http.DefaultClient, client2)
+
+		response, err := client2.Do(req)
+		assert.Equal(t, resp, response)
+		assert.Nil(t, err)
+	})
+
+	http.DefaultClient.Transport = http.DefaultTransport
 }
 
 func TestTripperwares_DecorateRoundTripFunc_Default(t *testing.T) {

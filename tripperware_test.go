@@ -13,6 +13,28 @@ import (
 	"github.com/gol4ng/httpware/mocks"
 )
 
+func TestTripperware_DecorateClient(t *testing.T) {
+	req, _ := http.NewRequest("GET", "http://localhost/", nil)
+	resp := &http.Response{}
+
+	roundTripperMock := &mocks.RoundTripper{}
+	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
+
+	tripperware := httpware.Tripperware(func(tripper http.RoundTripper) http.RoundTripper {
+		assert.Equal(t, http.DefaultTransport, tripper)
+		return httpware.RoundTripFunc(func(r *http.Request) (*http.Response, error) {
+			assert.Equal(t, req, r)
+			// we already check that tripper == http.DefaultTransport
+			// so we can replace the call with the mocked one
+			return roundTripperMock.RoundTrip(r)
+		})
+	})
+
+	response, err := tripperware.DecorateClient(&http.Client{}).Do(req)
+	assert.Equal(t, resp, response)
+	assert.Nil(t, err)
+}
+
 func TestTripperwares_DecorateRoundTripper(t *testing.T) {
 	req := &http.Request{}
 	resp := &http.Response{}
@@ -31,6 +53,28 @@ func TestTripperwares_DecorateRoundTripper(t *testing.T) {
 	})
 
 	response, err := stack.DecorateRoundTripper(nil).RoundTrip(req)
+	assert.Equal(t, resp, response)
+	assert.Nil(t, err)
+}
+
+func TestTripperwares_DecorateClient(t *testing.T) {
+	req, _ := http.NewRequest("GET", "http://localhost/", nil)
+	resp := &http.Response{}
+
+	roundTripperMock := &mocks.RoundTripper{}
+	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
+
+	stack := httpware.TripperwareStack(func(tripper http.RoundTripper) http.RoundTripper {
+		assert.Equal(t, http.DefaultTransport, tripper)
+		return httpware.RoundTripFunc(func(r *http.Request) (*http.Response, error) {
+			assert.Equal(t, req, r)
+			// we already check that tripper == http.DefaultTransport
+			// so we can replace the call with the mocked one
+			return roundTripperMock.RoundTrip(r)
+		})
+	})
+
+	response, err := stack.DecorateClient(&http.Client{}).Do(req)
 	assert.Equal(t, resp, response)
 	assert.Nil(t, err)
 }

@@ -33,9 +33,6 @@ func (t Tripperwares) RoundTrip(req *http.Request) (*http.Response, error) {
 
 // DecorateClient will decorate a given http.Client with the given tripperware collection
 func (t Tripperwares) DecorateClient(client *http.Client) *http.Client {
-	if client.Transport == nil {
-		client.Transport = http.DefaultTransport
-	}
 	client.Transport = t.DecorateRoundTripper(client.Transport)
 	return client
 }

@@ -19,9 +19,8 @@ func RequestId(config *request_id.Config) httpware.Middleware {
 			}
 			// add the request id to the context request
 			r := req.WithContext(context.WithValue(req.Context(), config.HeaderName, id))
+			writer.Header().Set(config.HeaderName, id)
 			next.ServeHTTP(writer, r)
-			// add the request id to the response after underlying handler finish
-			writer.Header().Add(config.HeaderName, id)
 		})
 	}
 }

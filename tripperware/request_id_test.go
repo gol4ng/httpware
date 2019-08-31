@@ -1,6 +1,8 @@
 package tripperware_test
 
 import (
+	"fmt"
+	"github.com/gol4ng/httpware"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -61,4 +63,39 @@ func TestRequestIdCustom(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleRequestId() {
+	port := ":5005"
+	config := request_id.NewConfig()
+	// you can override default header name
+	config.HeaderName = "my-personal-header-name"
+	// you can override default id generator
+	config.GenerateId = func(request *http.Request) string {
+		return "my-generated-id"
+	}
+
+	// we recommend to use MiddlewareStack to simplify managing all wanted middleware
+	// caution middleware order matter
+	stack := httpware.TripperwareStack(
+		tripperware.RequestId(config),
+	)
+
+	// create http client using the tripperwareStack as RoundTripper
+	client := http.Client{
+		Transport: stack,
+	}
+
+	// create a server in order to show it work
+	srv := http.NewServeMux()
+	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Println("server receive request with request id:", request.Header.Get(config.HeaderName))
+	})
+
+	go func() {
+		if err := http.ListenAndServe(port, srv); err != nil {
+			panic(err)
+		}
+	}()
+
+	_, _ = client.Get("http://localhost"+port+"/")
+
+	// Output: server receive request with request id: my-generated-id
 }

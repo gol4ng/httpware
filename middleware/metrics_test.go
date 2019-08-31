@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"bou.ke/monkey"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gol4ng/httpware"
 	"github.com/gol4ng/httpware/metrics"
-	"github.com/gol4ng/httpware/metrics/prometheus"
+	prom "github.com/gol4ng/httpware/metrics/prometheus"
 	"github.com/gol4ng/httpware/middleware"
 	"github.com/gol4ng/httpware/mocks"
 )
@@ -20,7 +21,7 @@ func TestMetrics(t *testing.T) {
 	var recorderMock = &mocks.Recorder{}
 	var responseWriterMock = &httptest.ResponseRecorder{}
 	var req *http.Request
-	var requestTimeDuration = 10*time.Millisecond
+	var requestTimeDuration = 10 * time.Millisecond
 	var baseTime = time.Unix(513216000, 0)
 	var responseBody = "fake response"
 
@@ -60,23 +61,27 @@ func TestMetrics(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleMetrics() {
-	recorder := prometheus.
-		NewRecorder(prometheus.Config{}).
-		RegisterOn(nil)
+	port := ":5002"
 
-	conf := metrics.NewConfig(recorder)
-	conf.IdentifierProvider = func(req *http.Request) string {
-		return req.URL.Host+" -> "+req.URL.Path
+	recorder := prom.NewRecorder(prom.Config{}).RegisterOn(nil)
+
+	metricsConfig := metrics.NewConfig(recorder)
+	// you can override default identifier provider
+	metricsConfig.IdentifierProvider = func(req *http.Request) string {
+		return req.URL.Host + " -> " + req.URL.Path
 	}
+
+	// we recommend to use MiddlewareStack to simplify managing all wanted middleware
+	// caution middleware order matter
 	stack := httpware.MiddlewareStack(
-		middleware.Metrics(conf),
+		middleware.Metrics(metricsConfig),
 	)
 
 	srv := http.NewServeMux()
-	stack.DecorateHandler(srv)
+	srv.Handle("/metrics", promhttp.Handler())
 
 	go func() {
-		if err := http.ListenAndServe(":3000", stack.DecorateHandler(srv)); err != nil {
+		if err := http.ListenAndServe(port, stack.DecorateHandler(srv)); err != nil {
 			panic(err)
 		}
 	}()

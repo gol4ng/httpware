@@ -57,16 +57,17 @@ func TestMetrics(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleMetrics() {
-	recorder := prometheus.
-		NewRecorder(prometheus.Config{}).
-		RegisterOn(nil)
+	recorder := prometheus.NewRecorder(prometheus.Config{}).RegisterOn(nil)
 
-	conf := metrics.NewConfig(recorder)
-	conf.IdentifierProvider = func(req *http.Request) string {
+	config := metrics.NewConfig(recorder)
+	config.IdentifierProvider = func(req *http.Request) string {
 		return req.URL.Host+" -> "+req.URL.Path
 	}
+
+	// we recommend to use MiddlewareStack to simplify managing all wanted middleware
+	// caution middleware order matter
 	stack := httpware.TripperwareStack(
-		tripperware.Metrics(conf),
+		tripperware.Metrics(config),
 	)
 
 	// create http client using the tripperwareStack as RoundTripper

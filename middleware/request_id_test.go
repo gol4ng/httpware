@@ -43,7 +43,7 @@ func TestRequestIdCustom(t *testing.T) {
 		handlerReq = r
 	})
 	config := request_id.NewConfig()
-	config.GenerateId = func(request *http.Request) string {
+	config.IdGenerator = func(request *http.Request) string {
 		return "my_fake_request_id"
 	}
 
@@ -66,12 +66,12 @@ func ExampleRequestId() {
 	// you can override default header name
 	config.HeaderName = "my-personal-header-name"
 	// you can override default id generator
-	config.GenerateId = func(request *http.Request) string {
+	config.IdGenerator = func(request *http.Request) string {
 		return "my-fixed-request-id"
 	}
 
-	// we recommend to use MiddlewareStack to simplify managing all wanted middleware
-	// caution middleware order matter
+	// we recommend to use MiddlewareStack to simplify managing all wanted middlewares
+	// caution middleware order matters
 	stack := httpware.MiddlewareStack(
 		middleware.RequestId(config),
 	)
@@ -84,7 +84,7 @@ func ExampleRequestId() {
 	}()
 
 	resp, err := http.Get("http://localhost" + port)
-	fmt.Printf("%v %v\n", resp.Header.Get(config.HeaderName), err)
+	fmt.Printf("%s: %v %v\n", config.HeaderName, resp.Header.Get(config.HeaderName), err)
 
-	//Output: my-fixed-request-id <nil>
+	//Output: my-personal-header-name: my-fixed-request-id <nil>
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/gol4ng/httpware/request_id"
 )
 
-// RequestId middleware get request id header if provided or generate a request id
-// It will add the request ID to request context and add it to response header to
+// RequestId tripperware gets request id header if provided or generates a request id
+// It will add the request ID to request context
 func RequestId(config *request_id.Config) httpware.Tripperware {
 	return func(next http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
@@ -18,7 +18,7 @@ func RequestId(config *request_id.Config) httpware.Tripperware {
 				id = req.Header.Get(config.HeaderName)
 			}
 			if id == "" {
-				id = config.GenerateId(req)
+				id = config.IdGenerator(req)
 			}
 			r := req.WithContext(context.WithValue(req.Context(), config.HeaderName, id))
 			r.Header.Add(config.HeaderName, id)

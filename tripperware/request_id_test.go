@@ -2,7 +2,6 @@ package tripperware_test
 
 import (
 	"fmt"
-	"github.com/gol4ng/httpware"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/gol4ng/httpware"
 	"github.com/gol4ng/httpware/mocks"
 	"github.com/gol4ng/httpware/request_id"
 	"github.com/gol4ng/httpware/tripperware"
@@ -49,7 +49,7 @@ func TestRequestIdCustom(t *testing.T) {
 	})
 
 	config := request_id.NewConfig()
-	config.GenerateId = func(request *http.Request) string {
+	config.IdGenerator = func(request *http.Request) string {
 		return "my_fake_request_id"
 	}
 
@@ -68,7 +68,7 @@ func ExampleRequestId() {
 	// you can override default header name
 	config.HeaderName = "my-personal-header-name"
 	// you can override default id generator
-	config.GenerateId = func(request *http.Request) string {
+	config.IdGenerator = func(request *http.Request) string {
 		return "my-generated-id"
 	}
 

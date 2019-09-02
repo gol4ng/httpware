@@ -15,10 +15,11 @@ func RequestId(config *request_id.Config) httpware.Middleware {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
 			id := req.Header.Get(config.HeaderName)
 			if id == "" {
-				id = config.GenerateId(req)
+				id = config.IdGenerator(req)
 			}
-			// add the request id to the context request
+			// add the request id to the current context request
 			r := req.WithContext(context.WithValue(req.Context(), config.HeaderName, id))
+			// add it to the response headers
 			writer.Header().Set(config.HeaderName, id)
 			next.ServeHTTP(writer, r)
 		})

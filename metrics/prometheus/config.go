@@ -3,8 +3,8 @@ package prometheus
 import "github.com/prometheus/client_golang/prometheus"
 
 type Config struct {
-	// Prefix is the prefix that will be set on the metrics, by default it will be empty.
-	Prefix string
+	// Namespace is the prefix that will be set on the metrics, by default it will be empty.
+	Namespace string
 	// DurationBuckets are the buckets used by Prometheus for the HTTP request duration metrics,
 	// by default uses Prometheus default buckets (from 5ms to 10s).
 	DurationBuckets []float64

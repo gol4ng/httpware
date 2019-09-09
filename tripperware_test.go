@@ -13,6 +13,28 @@ import (
 	"github.com/gol4ng/httpware/mocks"
 )
 
+func TestTripperware_RoundTrip(t *testing.T) {
+	req, _ := http.NewRequest("GET", "http://localhost/", nil)
+	resp := &http.Response{}
+
+	roundTripperMock := &mocks.RoundTripper{}
+	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
+
+	originalDefaultTransport := http.DefaultTransport
+	http.DefaultTransport = roundTripperMock
+
+	tripper := httpware.Tripperware(func(roundTripper http.RoundTripper) http.RoundTripper {
+		assert.Equal(t, http.DefaultTransport, roundTripper)
+		return roundTripper
+	})
+
+	r, err := tripper.RoundTrip(req)
+	assert.Nil(t, err)
+	assert.Equal(t, r, resp)
+
+	http.DefaultTransport = originalDefaultTransport
+}
+
 func TestTripperware_DecorateClient(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://localhost/", nil)
 	resp := &http.Response{}

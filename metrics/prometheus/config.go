@@ -47,3 +47,13 @@ func (c *Config) defaults() {
 		c.MethodLabel = "method"
 	}
 }
+
+type ConfigTrace struct {
+	// Namespace is the prefix that will be set on the metrics, by default it will be empty.
+	Namespace string
+	// DurationBuckets are the buckets used by Prometheus for the HTTP request duration metrics,
+	// by default uses Prometheus default buckets (from 5ms to 10s).
+	DetailLatencyBuckets []float64
+	DNSLatencyBuckets    []float64
+	TLSLatencyBuckets    []float64
+}

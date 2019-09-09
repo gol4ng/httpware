@@ -13,6 +13,11 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 // Tripperware represents an http client-side middleware (roundTripper middleware).
 type Tripperware func(http.RoundTripper) http.RoundTripper
 
+// RoundTrip implements RoundTripper interface
+func (t Tripperware) RoundTrip(req *http.Request) (*http.Response, error) {
+	return t(http.DefaultTransport).RoundTrip(req)
+}
+
 // DecorateClient will decorate a given http.Client with the tripperware
 // will return a clone of client if clone arg is true
 func (t Tripperware) DecorateClient(client *http.Client, clone bool) *http.Client {

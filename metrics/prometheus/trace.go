@@ -2,8 +2,9 @@ package prometheus
 
 import (
 	"context"
-	"github.com/prometheus/client_golang/prometheus"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/gol4ng/httpware/metrics"
 )
@@ -16,7 +17,6 @@ func NewInstrumentTrace(config ConfigTrace) *metrics.InstrumentTrace {
 			Name:      "details_duration_seconds",
 			Help:      "Trace request latency histogram.",
 			Buckets:   config.DetailLatencyBuckets,
-			//Buckets: []float64{.005, .01, .025, .05},
 		},
 		[]string{"event"},
 	)
@@ -27,7 +27,6 @@ func NewInstrumentTrace(config ConfigTrace) *metrics.InstrumentTrace {
 			Name:      "dns_duration_seconds",
 			Help:      "Trace dns latency histogram.",
 			Buckets:   config.DNSLatencyBuckets,
-			//Buckets: []float64{.005, .01, .025, .05},
 		},
 		[]string{"event"},
 	)
@@ -38,7 +37,6 @@ func NewInstrumentTrace(config ConfigTrace) *metrics.InstrumentTrace {
 			Name:      "tls_duration_seconds",
 			Help:      "Trace tls latency histogram.",
 			Buckets:   config.TLSLatencyBuckets,
-			//Buckets: []float64{.05, .1, .25, .5},
 		},
 		[]string{"event"},
 	)

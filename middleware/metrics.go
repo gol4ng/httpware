@@ -22,15 +22,15 @@ func Metrics(config *metrics.Config) httpware.Middleware {
 
 			start := time.Now()
 			defer func() {
-				code := strconv.Itoa(writerInterceptor.statusCode)
+				code := strconv.Itoa(writerInterceptor.StatusCode)
 				if !config.SplitStatus {
-					code = fmt.Sprintf("%dxx", writerInterceptor.statusCode/100)
+					code = fmt.Sprintf("%dxx", writerInterceptor.StatusCode/100)
 				}
 
 				config.Recorder.ObserveHTTPRequestDuration(req.Context(), handlerName, time.Since(start), req.Method, code)
 
 				if config.ObserveResponseSize {
-					config.Recorder.ObserveHTTPResponseSize(req.Context(), handlerName, int64(writerInterceptor.bytesWritten), req.Method, code)
+					config.Recorder.ObserveHTTPResponseSize(req.Context(), handlerName, int64(len(writerInterceptor.Body)), req.Method, code)
 				}
 			}()
 

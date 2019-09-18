@@ -27,14 +27,14 @@ func TestRequestId(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// not equal because req.WithContext create another request object
 		assert.NotEqual(t, req, r)
-		assert.Equal(t, "p1LGIehp1s", r.Header.Get(request_id.HeaderName))
+		assert.NotEqual(t, "", r.Header.Get(request_id.HeaderName))
 		handlerReq = r
 	})
 
 	middleware.RequestId(request_id.NewConfig())(handler).ServeHTTP(responseWriter, req)
 	respHeaderValue := responseWriter.Header().Get(request_id.HeaderName)
 	reqContextValue := handlerReq.Context().Value(request_id.HeaderName).(string)
-	assert.Equal(t, "p1LGIehp1s", req.Header.Get(request_id.HeaderName))
+	assert.NotEqual(t, "", req.Header.Get(request_id.HeaderName))
 	assert.True(t, len(respHeaderValue) == 10)
 	assert.True(t, len(reqContextValue) == 10)
 	assert.True(t, respHeaderValue == reqContextValue)
@@ -48,7 +48,7 @@ func TestRequestIdCustom(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// not equal because req.WithContext create another request object
 		assert.NotEqual(t, req, r)
-		assert.Equal(t, "my_fake_request_id", r.Header.Get(request_id.HeaderName))
+		assert.NotEqual(t, "", r.Header.Get(request_id.HeaderName))
 		handlerReq = r
 	})
 	config := request_id.NewConfig()

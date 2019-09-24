@@ -10,14 +10,12 @@ import (
 )
 
 func Test_Random(t *testing.T) {
-	for _, expectedId := range []string{"p1LGIehp1s", "uqtCDMLxiD"} {
-		assert.Equal(t, expectedId, request_id.RandomIdGenerator(nil))
-	}
+	assert.Equal(t, 10, len(request_id.RandomIdGenerator(nil)))
 }
 
 func Test_Random_NewSource(t *testing.T) {
-	request_id.Rand = rand.New(rand.NewSource(222))
-	for _, expectedId := range []string{"v4oRJ9dE5X", "1L4tHDfAyB"} {
+	request_id.Rand = rand.New(rand.NewSource(1))
+	for _, expectedId := range []string{"p1LGIehp1s", "uqtCDMLxiD"} {
 		assert.Equal(t, expectedId, request_id.RandomIdGenerator(nil))
 	}
 }

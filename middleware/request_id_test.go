@@ -2,6 +2,7 @@ package middleware_test
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,6 +15,11 @@ import (
 )
 
 func TestRequestId(t *testing.T) {
+	request_id.DefaultRand = rand.New(request_id.NewLockedSource(rand.NewSource(1)))
+	request_id.DefaultIdGenerator = request_id.NewRandomIdGenerator(
+		request_id.DefaultRand,
+		10,
+	)
 	var handlerReq *http.Request
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	responseWriter := &httptest.ResponseRecorder{}

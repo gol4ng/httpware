@@ -10,12 +10,13 @@ import (
 )
 
 func Test_Random(t *testing.T) {
-	assert.Equal(t, 10, len(request_id.RandomIdGenerator(nil)))
+	assert.Equal(t, 10, len(request_id.DefaultIdGenerator.Generate(nil)))
 }
 
 func Test_Random_NewSource(t *testing.T) {
-	request_id.Rand = rand.New(rand.NewSource(1))
-	for _, expectedId := range []string{"p1LGIehp1s", "uqtCDMLxiD"} {
-		assert.Equal(t, expectedId, request_id.RandomIdGenerator(nil))
+	r := rand.New(request_id.NewLockedSource(rand.NewSource(1)))
+	rg := request_id.NewRandomIdGenerator(r, 20)
+	for _, expectedId := range []string{"DHIMG9FpXzp1LGIehp1s", "zAHyfjXUlrGhblT7txWd"} {
+		assert.Equal(t, expectedId, rg.Generate(nil))
 	}
 }

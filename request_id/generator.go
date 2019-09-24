@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 
-var Rand = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
+var Rand = rand.New(NewLockedSource(rand.NewSource(time.Now().UTC().UnixNano())))
 
 func RandomIdGenerator(_ *http.Request) string {
 	return randomString(10) // eg: XPF0G5kqEG

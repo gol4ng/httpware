@@ -16,6 +16,8 @@ func RequestId(config *request_id.Config) httpware.Middleware {
 			id := req.Header.Get(config.HeaderName)
 			if id == "" {
 				id = config.IdGenerator(req)
+				// set requestId header to current request
+				req.Header.Set(config.HeaderName, id)
 			}
 			// add the request id to the current context request
 			r := req.WithContext(context.WithValue(req.Context(), config.HeaderName, id))

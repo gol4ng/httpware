@@ -32,39 +32,6 @@ func (r *LockedSource) Seed(seed int64) {
 	r.lk.Unlock()
 }
 
-// seedPos implements Seed for a LockedSource without a race condition.
-func (r *LockedSource) seedPos(seed int64, readPos *int8) {
-	r.lk.Lock()
-	r.src.Seed(seed)
-	*readPos = 0
-	r.lk.Unlock()
-}
-
-// read implements Read for a LockedSource without a race condition.
-func (r *LockedSource) read(p []byte, readVal *int64, readPos *int8) (n int, err error) {
-	r.lk.Lock()
-	n, err = read(p, r.src.Int63, readVal, readPos)
-	r.lk.Unlock()
-	return
-}
-
 func NewLockedSource(src rand.Source) *LockedSource {
 	return &LockedSource{src: src.(rand.Source64)}
-}
-
-func read(p []byte, int63 func() int64, readVal *int64, readPos *int8) (n int, err error) {
-	pos := *readPos
-	val := *readVal
-	for n = 0; n < len(p); n++ {
-		if pos == 0 {
-			val = int63()
-			pos = 7
-		}
-		p[n] = byte(val)
-		val >>= 8
-		pos--
-	}
-	*readPos = pos
-	*readVal = val
-	return
 }

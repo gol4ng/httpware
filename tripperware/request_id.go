@@ -19,9 +19,9 @@ func RequestId(config *request_id.Config) httpware.Tripperware {
 			}
 			if id == "" {
 				id = config.IdGenerator(req)
+				req.Header.Add(config.HeaderName, id)
 			}
 			r := req.WithContext(context.WithValue(req.Context(), config.HeaderName, id))
-			r.Header.Add(config.HeaderName, id)
 			return next.RoundTrip(r)
 		})
 	}

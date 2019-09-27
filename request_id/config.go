@@ -14,6 +14,6 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		HeaderName:  HeaderName,
-		IdGenerator: RandomIdGenerator,
+		IdGenerator: DefaultIdGenerator.Generate,
 	}
 }

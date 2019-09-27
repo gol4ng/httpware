@@ -19,6 +19,7 @@ func RequestId(config *request_id.Config) httpware.Tripperware {
 			}
 			if id == "" {
 				id = config.IdGenerator(req)
+				// add requestId header to current request
 				req.Header.Add(config.HeaderName, id)
 			}
 			r := req.WithContext(context.WithValue(req.Context(), config.HeaderName, id))

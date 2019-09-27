@@ -27,11 +27,13 @@ func TestRequestId(t *testing.T) {
 	roundTripperMock.On("RoundTrip", mock.AnythingOfType("*http.Request")).Return(resp, nil).Run(func(args mock.Arguments) {
 		innerReq := args.Get(0).(*http.Request)
 		assert.True(t, len(innerReq.Header.Get(request_id.HeaderName)) == 10)
+		assert.Equal(t, req.Header.Get(request_id.HeaderName), innerReq.Header.Get(request_id.HeaderName))
 	})
 
 	resp2, err := tripperware.RequestId(request_id.NewConfig())(roundTripperMock).RoundTrip(req)
 	assert.Nil(t, err)
 	assert.Equal(t, resp, resp2)
+	assert.NotEqual(t, req.Header.Get(request_id.HeaderName), "")
 }
 
 func TestRequestIdCustom(t *testing.T) {
@@ -95,7 +97,7 @@ func ExampleRequestId() {
 		}
 	}()
 
-	_, _ = client.Get("http://localhost"+port+"/")
+	_, _ = client.Get("http://localhost" + port + "/")
 
 	// Output: server receive request with request id: my-generated-id
 }

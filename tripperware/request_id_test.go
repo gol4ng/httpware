@@ -33,7 +33,7 @@ func TestRequestId(t *testing.T) {
 	resp2, err := tripperware.RequestId(request_id.NewConfig())(roundTripperMock).RoundTrip(req)
 	assert.Nil(t, err)
 	assert.Equal(t, resp, resp2)
-	assert.NotEqual(t, req.Header.Get(request_id.HeaderName), "")
+	assert.Equal(t, "p1LGIehp1s", req.Header.Get(request_id.HeaderName))
 }
 
 func TestRequestIdCustom(t *testing.T) {

@@ -2,8 +2,10 @@ package tripperware_test
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,6 +16,14 @@ import (
 	"github.com/gol4ng/httpware/request_id"
 	"github.com/gol4ng/httpware/tripperware"
 )
+
+func TestMain(m *testing.M){
+	request_id.DefaultIdGenerator = request_id.NewRandomIdGenerator(
+		rand.New(request_id.NewLockedSource(rand.NewSource(1))),
+		10,
+	)
+	os.Exit(m.Run())
+}
 
 func TestRequestId(t *testing.T) {
 	roundTripperMock := &mocks.RoundTripper{}
@@ -27,11 +37,13 @@ func TestRequestId(t *testing.T) {
 	roundTripperMock.On("RoundTrip", mock.AnythingOfType("*http.Request")).Return(resp, nil).Run(func(args mock.Arguments) {
 		innerReq := args.Get(0).(*http.Request)
 		assert.True(t, len(innerReq.Header.Get(request_id.HeaderName)) == 10)
+		assert.Equal(t, req.Header.Get(request_id.HeaderName), innerReq.Header.Get(request_id.HeaderName))
 	})
 
 	resp2, err := tripperware.RequestId(request_id.NewConfig())(roundTripperMock).RoundTrip(req)
 	assert.Nil(t, err)
 	assert.Equal(t, resp, resp2)
+	assert.Equal(t, "p1LGIehp1s", req.Header.Get(request_id.HeaderName))
 }
 
 func TestRequestIdCustom(t *testing.T) {
@@ -95,7 +107,7 @@ func ExampleRequestId() {
 		}
 	}()
 
-	_, _ = client.Get("http://localhost"+port+"/")
+	_, _ = client.Get("http://localhost" + port + "/")
 
 	// Output: server receive request with request id: my-generated-id
 }

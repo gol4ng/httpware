@@ -2,18 +2,27 @@ package tripperware_test
 
 import (
 	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"math/rand"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
 
 	"github.com/gol4ng/httpware"
 	"github.com/gol4ng/httpware/mocks"
 	"github.com/gol4ng/httpware/request_id"
 	"github.com/gol4ng/httpware/tripperware"
 )
+
+func TestMain(m *testing.M){
+	request_id.DefaultIdGenerator = request_id.NewRandomIdGenerator(
+		rand.New(request_id.NewLockedSource(rand.NewSource(1))),
+		10,
+	)
+	os.Exit(m.Run())
+}
 
 func TestRequestId(t *testing.T) {
 	roundTripperMock := &mocks.RoundTripper{}

@@ -2,13 +2,14 @@ package tripperware_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/gol4ng/httpware"
 	"github.com/gol4ng/httpware/mocks"

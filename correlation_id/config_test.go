@@ -1,10 +1,12 @@
 package correlation_id_test
 
 import (
-	"github.com/gol4ng/httpware/correlation_id"
-	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/gol4ng/httpware/correlation_id"
 )
 
 func TestNewConfig(t *testing.T) {

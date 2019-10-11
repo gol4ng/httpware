@@ -1,8 +1,7 @@
-package request_id
+package correlation_id
 
 import (
 	"math/rand"
-	"net/http"
 	"time"
 	"unsafe"
 )
@@ -16,14 +15,13 @@ const (
 )
 
 type RandomIdGenerator struct {
-	r      *rand.Rand
-	length int
+	r *rand.Rand
 }
 
-func (rg *RandomIdGenerator) Generate(_ *http.Request) string {
-	b := make([]byte, rg.length)
+func (rg *RandomIdGenerator) Generate(length int) string {
+	b := make([]byte, length)
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
-	for i, cache, remain := rg.length-1, rg.r.Int63(), letterIdxMax; i >= 0; {
+	for i, cache, remain := length-1, rg.r.Int63(), letterIdxMax; i >= 0; {
 		if remain == 0 {
 			cache, remain = rg.r.Int63(), letterIdxMax
 		}
@@ -37,15 +35,18 @@ func (rg *RandomIdGenerator) Generate(_ *http.Request) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-var DefaultRand = rand.New(NewLockedSource(rand.NewSource(time.Now().UTC().UnixNano())))
 var DefaultIdGenerator = NewRandomIdGenerator(
-	DefaultRand,
-	10,
+	rand.New(
+		NewLockedSource(
+			rand.NewSource(
+				time.Now().UTC().UnixNano(),
+			),
+		),
+	),
 )
 
-func NewRandomIdGenerator(rand *rand.Rand, length int) *RandomIdGenerator {
+func NewRandomIdGenerator(rand *rand.Rand) *RandomIdGenerator {
 	return &RandomIdGenerator{
-		r:      rand,
-		length: length,
+		r: rand,
 	}
 }

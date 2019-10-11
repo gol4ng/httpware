@@ -8,9 +8,9 @@ import (
 	"github.com/gol4ng/httpware/correlation_id"
 )
 
-// RequestId middleware get request id header if provided or generate a request id
+// CorrelationId middleware get request id header if provided or generate a request id
 // It will add the request ID to request context and add it to response header to
-func RequestId(config *correlation_id.Config) httpware.Middleware {
+func CorrelationId(config *correlation_id.Config) httpware.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
 			id := req.Header.Get(config.HeaderName)

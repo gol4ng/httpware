@@ -14,9 +14,10 @@ import (
 	"github.com/gol4ng/httpware/middleware"
 )
 
-func TestRequestId(t *testing.T) {
-	defaultRand := rand.New(correlation_id.NewLockedSource(rand.NewSource(1)))
-	correlation_id.DefaultIdGenerator = correlation_id.NewRandomIdGenerator(defaultRand)
+func TestCorrelationId(t *testing.T) {
+	correlation_id.DefaultIdGenerator = correlation_id.NewRandomIdGenerator(
+		rand.New(correlation_id.NewLockedSource(rand.NewSource(1))),
+	)
 
 	var handlerReq *http.Request
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
@@ -29,7 +30,7 @@ func TestRequestId(t *testing.T) {
 		handlerReq = r
 	})
 
-	middleware.RequestId(correlation_id.NewConfig())(handler).ServeHTTP(responseWriter, req)
+	middleware.CorrelationId(correlation_id.NewConfig())(handler).ServeHTTP(responseWriter, req)
 	respHeaderValue := responseWriter.Header().Get(correlation_id.HeaderName)
 	reqContextValue := handlerReq.Context().Value(correlation_id.HeaderName).(string)
 	assert.Equal(t, "p1LGIehp1s", req.Header.Get(correlation_id.HeaderName))
@@ -38,36 +39,11 @@ func TestRequestId(t *testing.T) {
 	assert.True(t, respHeaderValue == reqContextValue)
 }
 
-func TestRequestIdCustom(t *testing.T) {
-	var handlerReq *http.Request
-	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
-	responseWriter := &httptest.ResponseRecorder{}
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// not equal because req.WithContext create another request object
-		assert.NotEqual(t, req, r)
-		assert.Equal(t, "my_fake_correlation", r.Header.Get(correlation_id.HeaderName))
-		handlerReq = r
-	})
-	config := correlation_id.NewConfig()
-	config.IdGenerator = func(request *http.Request) string {
-		return "my_fake_correlation"
-	}
-
-	middleware.RequestId(config)(handler).ServeHTTP(responseWriter, req)
-	headerValue := responseWriter.Header().Get(correlation_id.HeaderName)
-	reqContextValue := handlerReq.Context().Value(correlation_id.HeaderName).(string)
-	assert.NotEqual(t, "", req.Header.Get(correlation_id.HeaderName))
-	assert.Equal(t, "my_fake_correlation", headerValue)
-	assert.Equal(t, "my_fake_correlation", reqContextValue)
-	assert.True(t, headerValue == reqContextValue)
-}
-
 // =====================================================================================================================
 // ========================================= EXAMPLES ==================================================================
 // =====================================================================================================================
 
-func ExampleRequestId() {
+func ExampleCorrelationId() {
 	port := ":5001"
 
 	config := correlation_id.NewConfig()
@@ -81,7 +57,7 @@ func ExampleRequestId() {
 	// we recommend to use MiddlewareStack to simplify managing all wanted middlewares
 	// caution middleware order matters
 	stack := httpware.MiddlewareStack(
-		middleware.RequestId(config),
+		middleware.CorrelationId(config),
 	)
 
 	srv := http.NewServeMux()

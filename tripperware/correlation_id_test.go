@@ -1,6 +1,7 @@
 package tripperware_test
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -24,7 +25,7 @@ func TestMain(m *testing.M){
 	os.Exit(m.Run())
 }
 
-func TestRequestId(t *testing.T) {
+func TestCorrelationId(t *testing.T) {
 	roundTripperMock := &mocks.RoundTripper{}
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	resp := &http.Response{
@@ -35,17 +36,42 @@ func TestRequestId(t *testing.T) {
 
 	roundTripperMock.On("RoundTrip", mock.AnythingOfType("*http.Request")).Return(resp, nil).Run(func(args mock.Arguments) {
 		innerReq := args.Get(0).(*http.Request)
-		assert.True(t, len(innerReq.Header.Get(correlation_id.HeaderName)) == 10)
+		assert.Len(t, innerReq.Header.Get(correlation_id.HeaderName), 10)
 		assert.Equal(t, req.Header.Get(correlation_id.HeaderName), innerReq.Header.Get(correlation_id.HeaderName))
 	})
 
-	resp2, err := tripperware.RequestId(correlation_id.NewConfig())(roundTripperMock).RoundTrip(req)
+	resp2, err := tripperware.CorrelationId(correlation_id.NewConfig())(roundTripperMock).RoundTrip(req)
 	assert.Nil(t, err)
 	assert.Equal(t, resp, resp2)
 	assert.Equal(t, "p1LGIehp1s", req.Header.Get(correlation_id.HeaderName))
 }
 
-func TestRequestIdCustom(t *testing.T) {
+func TestCorrelationId_AlreadyInContext(t *testing.T) {
+	config := correlation_id.NewConfig()
+	roundTripperMock := &mocks.RoundTripper{}
+	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
+	req = req.WithContext(context.WithValue(req.Context(), config.HeaderName, "my_already_exist_correlation_id"))
+
+	resp := &http.Response{
+		Status:        "OK",
+		StatusCode:    http.StatusOK,
+		ContentLength: 30,
+	}
+
+	roundTripperMock.On("RoundTrip", mock.AnythingOfType("*http.Request")).Return(resp, nil).Run(func(args mock.Arguments) {
+		innerReq := args.Get(0).(*http.Request)
+		assert.Equal(t, req, innerReq)
+		assert.Len(t, innerReq.Header.Get(config.HeaderName), 31)
+		assert.Equal(t, req.Header.Get(config.HeaderName), innerReq.Header.Get(config.HeaderName))
+	})
+
+	resp2, err := tripperware.CorrelationId(config)(roundTripperMock).RoundTrip(req)
+	assert.Nil(t, err)
+	assert.Equal(t, resp, resp2)
+	assert.Equal(t, "my_already_exist_correlation_id", req.Header.Get(config.HeaderName))
+}
+
+func TestCorrelationIdCustom(t *testing.T) {
 	roundTripperMock := &mocks.RoundTripper{}
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	resp := &http.Response{
@@ -64,7 +90,7 @@ func TestRequestIdCustom(t *testing.T) {
 		return "my_fake_correlation"
 	}
 
-	resp2, err := tripperware.RequestId(config)(roundTripperMock).RoundTrip(req)
+	resp2, err := tripperware.CorrelationId(config)(roundTripperMock).RoundTrip(req)
 	assert.Nil(t, err)
 	assert.Equal(t, resp, resp2)
 }
@@ -73,7 +99,7 @@ func TestRequestIdCustom(t *testing.T) {
 // ========================================= EXAMPLES ==================================================================
 // =====================================================================================================================
 
-func ExampleRequestId() {
+func ExampleCorrelationId() {
 	port := ":5005"
 	config := correlation_id.NewConfig()
 	// you can override default header name
@@ -86,7 +112,7 @@ func ExampleRequestId() {
 	// we recommend to use MiddlewareStack to simplify managing all wanted middleware
 	// caution middleware order matter
 	stack := httpware.TripperwareStack(
-		tripperware.RequestId(config),
+		tripperware.CorrelationId(config),
 	)
 
 	// create http client using the tripperwareStack as RoundTripper

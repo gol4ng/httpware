@@ -10,16 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gol4ng/httpware"
+	"github.com/gol4ng/httpware/correlation_id"
 	"github.com/gol4ng/httpware/middleware"
-	"github.com/gol4ng/httpware/request_id"
 )
 
 func TestRequestId(t *testing.T) {
-	request_id.DefaultRand = rand.New(request_id.NewLockedSource(rand.NewSource(1)))
-	request_id.DefaultIdGenerator = request_id.NewRandomIdGenerator(
-		request_id.DefaultRand,
-		10,
-	)
+	defaultRand := rand.New(correlation_id.NewLockedSource(rand.NewSource(1)))
+	correlation_id.DefaultIdGenerator = correlation_id.NewRandomIdGenerator(defaultRand)
+
 	var handlerReq *http.Request
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	responseWriter := &httptest.ResponseRecorder{}
@@ -27,14 +25,14 @@ func TestRequestId(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// not equal because req.WithContext create another request object
 		assert.NotEqual(t, req, r)
-		assert.Equal(t, "p1LGIehp1s", r.Header.Get(request_id.HeaderName))
+		assert.Equal(t, "p1LGIehp1s", r.Header.Get(correlation_id.HeaderName))
 		handlerReq = r
 	})
 
-	middleware.RequestId(request_id.NewConfig())(handler).ServeHTTP(responseWriter, req)
-	respHeaderValue := responseWriter.Header().Get(request_id.HeaderName)
-	reqContextValue := handlerReq.Context().Value(request_id.HeaderName).(string)
-	assert.Equal(t, "p1LGIehp1s", req.Header.Get(request_id.HeaderName))
+	middleware.RequestId(correlation_id.NewConfig())(handler).ServeHTTP(responseWriter, req)
+	respHeaderValue := responseWriter.Header().Get(correlation_id.HeaderName)
+	reqContextValue := handlerReq.Context().Value(correlation_id.HeaderName).(string)
+	assert.Equal(t, "p1LGIehp1s", req.Header.Get(correlation_id.HeaderName))
 	assert.True(t, len(respHeaderValue) == 10)
 	assert.True(t, len(reqContextValue) == 10)
 	assert.True(t, respHeaderValue == reqContextValue)
@@ -48,20 +46,20 @@ func TestRequestIdCustom(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// not equal because req.WithContext create another request object
 		assert.NotEqual(t, req, r)
-		assert.Equal(t, "my_fake_request_id", r.Header.Get(request_id.HeaderName))
+		assert.Equal(t, "my_fake_correlation", r.Header.Get(correlation_id.HeaderName))
 		handlerReq = r
 	})
-	config := request_id.NewConfig()
+	config := correlation_id.NewConfig()
 	config.IdGenerator = func(request *http.Request) string {
-		return "my_fake_request_id"
+		return "my_fake_correlation"
 	}
 
 	middleware.RequestId(config)(handler).ServeHTTP(responseWriter, req)
-	headerValue := responseWriter.Header().Get(request_id.HeaderName)
-	reqContextValue := handlerReq.Context().Value(request_id.HeaderName).(string)
-	assert.NotEqual(t, "", req.Header.Get(request_id.HeaderName))
-	assert.Equal(t, "my_fake_request_id", headerValue)
-	assert.Equal(t, "my_fake_request_id", reqContextValue)
+	headerValue := responseWriter.Header().Get(correlation_id.HeaderName)
+	reqContextValue := handlerReq.Context().Value(correlation_id.HeaderName).(string)
+	assert.NotEqual(t, "", req.Header.Get(correlation_id.HeaderName))
+	assert.Equal(t, "my_fake_correlation", headerValue)
+	assert.Equal(t, "my_fake_correlation", reqContextValue)
 	assert.True(t, headerValue == reqContextValue)
 }
 
@@ -72,7 +70,7 @@ func TestRequestIdCustom(t *testing.T) {
 func ExampleRequestId() {
 	port := ":5001"
 
-	config := request_id.NewConfig()
+	config := correlation_id.NewConfig()
 	// you can override default header name
 	config.HeaderName = "my-personal-header-name"
 	// you can override default id generator

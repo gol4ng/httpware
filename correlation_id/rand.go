@@ -1,4 +1,4 @@
-package request_id
+package correlation_id
 
 import (
 	"math/rand"

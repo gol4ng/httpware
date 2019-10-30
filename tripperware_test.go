@@ -331,9 +331,9 @@ func TestTripperwares_Prepend(t *testing.T) {
 	)
 
 	r, err := trippers.Prepend(
-		// the tripper will be add here
 		getTripper(t, i, 3, 5),
 		getTripper(t, i, 2, 6),
+		// the tripper will be add here
 	).DecorateRoundTripper(roundTripperMock).RoundTrip(req)
 
 	assert.Nil(t, err)

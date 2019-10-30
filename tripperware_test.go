@@ -119,12 +119,12 @@ func TestTripperware_Append(t *testing.T) {
 		return resp, nil
 	})
 
-	tripper := getTripper(t, i, 2, 4)
+	tripper := getTripper(t, i, 0, 6)
 
 	r, err := tripper.Append(
 		// the tripper will be add here
 		getTripper(t, i, 1, 5),
-		getTripper(t, i, 0, 6),
+		getTripper(t, i, 2, 4),
 	).DecorateRoundTripper(roundTripperMock).RoundTrip(req)
 
 	assert.Nil(t, err)
@@ -143,10 +143,10 @@ func TestTripperware_Prepend(t *testing.T) {
 		return resp, nil
 	})
 
-	tripper := getTripper(t, i, 0, 6)
+	tripper := getTripper(t, i, 2, 4)
 
 	r, err := tripper.Prepend(
-		getTripper(t, i, 2, 4),
+		getTripper(t, i, 0, 6),
 		getTripper(t, i, 1, 5),
 		// the tripper will be add here
 	).DecorateRoundTripper(roundTripperMock).RoundTrip(req)
@@ -299,14 +299,14 @@ func TestTripperwares_Append(t *testing.T) {
 	})
 
 	trippers := httpware.TripperwareStack(
-		getTripper(t, i, 3, 5),
-		getTripper(t, i, 2, 6),
+		getTripper(t, i, 0, 8),
+		getTripper(t, i, 1, 7),
 	)
 
 	r, err := trippers.Append(
 		// the tripper will be add here
-		getTripper(t, i, 1, 7),
-		getTripper(t, i, 0, 8),
+		getTripper(t, i, 2, 6),
+		getTripper(t, i, 3, 5),
 	).DecorateRoundTripper(roundTripperMock).RoundTrip(req)
 
 	assert.Nil(t, err)
@@ -326,13 +326,13 @@ func TestTripperwares_Prepend(t *testing.T) {
 	})
 
 	trippers := httpware.TripperwareStack(
-		getTripper(t, i, 1, 7),
-		getTripper(t, i, 0, 8),
+		getTripper(t, i, 2, 6),
+		getTripper(t, i, 3, 5),
 	)
 
 	r, err := trippers.Prepend(
-		getTripper(t, i, 3, 5),
-		getTripper(t, i, 2, 6),
+		getTripper(t, i, 0, 8),
+		getTripper(t, i, 1, 7),
 		// the tripper will be add here
 	).DecorateRoundTripper(roundTripperMock).RoundTrip(req)
 
@@ -364,8 +364,8 @@ func ExampleTripperwareStack_WithDefaultTransport() {
 	// /!\ note that the tripperware order is important here
 	// each request will pass through `addCustomRequestHeader` before `logRequestHeaders`
 	stack := httpware.TripperwareStack(
-		logRequestHeaders,
 		addCustomRequestHeader,
+		logRequestHeaders,
 	)
 	// create http client using the tripperwareStack as RoundTripper
 	client := http.Client{
@@ -398,8 +398,8 @@ func ExampleTripperwareStack_WithCustomTransport() {
 	// /!\ note that the tripperware order is important here
 	// each request will pass through `addCustomRequestHeader` before `logRequestHeaders`
 	stack := httpware.TripperwareStack(
-		logRequestHeaders,
 		addCustomRequestHeader,
+		logRequestHeaders,
 	)
 
 	// http.Transport implements RoundTripper interface

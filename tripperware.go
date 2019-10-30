@@ -1,6 +1,8 @@
 package httpware
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // RoundTripFunc wraps a func to make it into an http.RoundTripper. Similar to http.HandleFunc.
 type RoundTripFunc func(*http.Request) (*http.Response, error)
@@ -78,8 +80,9 @@ func (t Tripperwares) DecorateRoundTripper(tripper http.RoundTripper) http.Round
 	if tripper == nil {
 		tripper = http.DefaultTransport
 	}
-	for _, tripperware := range t {
-		tripper = tripperware(tripper)
+	tLen := len(t)
+	for i := tLen - 1; i >= 0; i-- {
+		tripper = t[i](tripper)
 	}
 	return tripper
 }

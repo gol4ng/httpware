@@ -25,8 +25,9 @@ type Middlewares []Middleware
 
 // DecorateHandler will decorate a given http.Handler with the given middlewares created by MiddlewareStack()
 func (m Middlewares) DecorateHandler(handler http.Handler) http.Handler {
-	for _, middleware := range m {
-		handler = middleware(handler)
+	mLen := len(m)
+	for i := mLen - 1; i >= 0; i-- {
+		handler = m[i](handler)
 	}
 	return handler
 }

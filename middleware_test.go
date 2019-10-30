@@ -11,6 +11,70 @@ import (
 	"github.com/gol4ng/httpware"
 )
 
+func getMiddleware(t *testing.T, i *int, iBefore int, iAfter int) httpware.Middleware {
+	return httpware.Middleware(func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				assert.Equal(t, iAfter, *i)
+				*i++
+			}()
+			assert.Equal(t, iBefore, *i)
+			*i++
+			h.ServeHTTP(w, r)
+		})
+	})
+}
+
+func TestMiddleware_Append(t *testing.T) {
+	req := &http.Request{}
+	responseWriterMock := &httptest.ResponseRecorder{}
+	responseBody := "fake response"
+
+	i := new(int)
+	*i = 0
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, 3, *i)
+		*i++
+		assert.IsType(t, responseWriterMock, w)
+		assert.Equal(t, req, r)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(responseBody))
+	})
+
+	middleware := getMiddleware(t, i, 2, 4)
+
+	middleware.Append(
+		// the middleware will be add here
+		getMiddleware(t, i, 1, 5),
+		getMiddleware(t, i, 0, 6),
+	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
+}
+
+func TestMiddleware_Prepend(t *testing.T) {
+	req := &http.Request{}
+	responseWriterMock := &httptest.ResponseRecorder{}
+	responseBody := "fake response"
+
+	i := new(int)
+	*i = 0
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, 3, *i)
+		*i++
+		assert.IsType(t, responseWriterMock, w)
+		assert.Equal(t, req, r)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(responseBody))
+	})
+
+	middleware := getMiddleware(t, i, 0, 6)
+
+	middleware.Prepend(
+		getMiddleware(t, i, 2, 4),
+		getMiddleware(t, i, 1, 5),
+		// the middleware will be add here
+	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
+}
+
 func TestMiddlewares_DecorateHandler(t *testing.T) {
 	req := &http.Request{}
 	responseWriterMock := &httptest.ResponseRecorder{}
@@ -59,6 +123,62 @@ func TestMiddlewares_DecorateHandlerFunc(t *testing.T) {
 	})
 
 	stack.DecorateHandlerFunc(handler).ServeHTTP(responseWriterMock, req)
+}
+
+func TestMiddlewares_Append(t *testing.T) {
+	req := &http.Request{}
+	responseWriterMock := &httptest.ResponseRecorder{}
+	responseBody := "fake response"
+
+	i := new(int)
+	*i = 0
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, 4, *i)
+		*i++
+		assert.IsType(t, responseWriterMock, w)
+		assert.Equal(t, req, r)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(responseBody))
+	})
+
+	middlewares := httpware.MiddlewareStack(
+		getMiddleware(t, i, 3, 5),
+		getMiddleware(t, i, 2, 6),
+	)
+
+	middlewares.Append(
+		// the middlewares will be add here
+		getMiddleware(t, i, 1, 7),
+		getMiddleware(t, i, 0, 8),
+	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
+}
+
+func TestMiddlewares_Prepend(t *testing.T) {
+	req := &http.Request{}
+	responseWriterMock := &httptest.ResponseRecorder{}
+	responseBody := "fake response"
+
+	i := new(int)
+	*i = 0
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, 4, *i)
+		*i++
+		assert.IsType(t, responseWriterMock, w)
+		assert.Equal(t, req, r)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(responseBody))
+	})
+
+	middlewares := httpware.MiddlewareStack(
+		getMiddleware(t, i, 1, 7),
+		getMiddleware(t, i, 0, 8),
+	)
+
+	middlewares.Prepend(
+		getMiddleware(t, i, 3, 5),
+		getMiddleware(t, i, 2, 6),
+		// the middlewares will be add here
+	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
 }
 
 // =====================================================================================================================

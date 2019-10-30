@@ -10,7 +10,8 @@ import (
 	"github.com/gol4ng/httpware/metrics"
 )
 
-func Metrics(config *metrics.Config) httpware.Tripperware {
+func Metrics(recorder metrics.Recorder, options ... metrics.Option) httpware.Tripperware {
+	config := metrics.NewConfig(recorder, options...)
 	return func(next http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 			handlerName := config.IdentifierProvider(req)

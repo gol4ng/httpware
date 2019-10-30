@@ -36,7 +36,7 @@ func TestMetrics(t *testing.T) {
 	}
 	// create metrics httpClient middleware
 	stack := httpware.MiddlewareStack(
-		middleware.Metrics(metrics.NewConfig(recorderMock)),
+		middleware.Metrics(recorderMock),
 	)
 
 	// assert recorder calls
@@ -65,16 +65,12 @@ func ExampleMetrics() {
 
 	recorder := prom.NewRecorder(prom.Config{}).RegisterOn(nil)
 
-	metricsConfig := metrics.NewConfig(recorder)
-	// you can override default identifier provider
-	metricsConfig.IdentifierProvider = func(req *http.Request) string {
-		return req.URL.Host + " -> " + req.URL.Path
-	}
-
 	// we recommend to use MiddlewareStack to simplify managing all wanted middleware
 	// caution middleware order matter
 	stack := httpware.MiddlewareStack(
-		middleware.Metrics(metricsConfig),
+		middleware.Metrics(recorder, metrics.WithIdentifierProvider(func(req *http.Request) string {
+			return req.URL.Host + " -> " + req.URL.Path
+		})),
 	)
 
 	srv := http.NewServeMux()

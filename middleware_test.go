@@ -2,6 +2,7 @@ package httpware_test
 
 import (
 	"fmt"
+	"github.com/gol4ng/httpware/correlation_id"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -207,6 +208,11 @@ func ExampleMiddlewareStack() {
 	)
 	// create a server
 	srv := http.NewServeMux()
+	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		request.Header.Get(correlation_id.HeaderName)
+		writer.WriteHeader(http.StatusOK)
+	})
+
 	// apply the middlewares on the server
 	// note: this part is normally done on `http.ListenAndServe(":<serverPort>", stack.DecorateHandler(srv))`
 	h := stack.DecorateHandler(srv)

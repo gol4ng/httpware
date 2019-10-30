@@ -21,11 +21,11 @@ func TestMetrics(t *testing.T) {
 	var recorderMock = &mocks.Recorder{}
 	var roundTripperMock = &mocks.RoundTripper{}
 	var req *http.Request
-	var requestTimeDuration = 10*time.Millisecond
+	var requestTimeDuration = 10 * time.Millisecond
 	var resp = &http.Response{
-		Status:           "OK",
-		StatusCode:       http.StatusOK,
-		ContentLength:    30,
+		Status:        "OK",
+		StatusCode:    http.StatusOK,
+		ContentLength: 30,
 	}
 	var baseTime = time.Unix(513216000, 0)
 
@@ -47,7 +47,7 @@ func TestMetrics(t *testing.T) {
 
 	// create metrics httpClient middleware
 	stack := httpware.TripperwareStack(
-		tripperware.Metrics(metrics.NewConfig(recorderMock)),
+		tripperware.Metrics(recorderMock),
 	)
 	_, _ = stack.DecorateRoundTripper(roundTripperMock).RoundTrip(req)
 }
@@ -59,15 +59,12 @@ func TestMetrics(t *testing.T) {
 func ExampleMetrics() {
 	recorder := prometheus.NewRecorder(prometheus.Config{}).RegisterOn(nil)
 
-	config := metrics.NewConfig(recorder)
-	config.IdentifierProvider = func(req *http.Request) string {
-		return req.URL.Host+" -> "+req.URL.Path
-	}
-
 	// we recommend to use MiddlewareStack to simplify managing all wanted middleware
 	// caution middleware order matter
 	stack := httpware.TripperwareStack(
-		tripperware.Metrics(config),
+		tripperware.Metrics(recorder, metrics.WithIdentifierProvider(func(req *http.Request) string {
+			return req.URL.Host + " -> " + req.URL.Path
+		})),
 	)
 
 	// create http client using the tripperwareStack as RoundTripper

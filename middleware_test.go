@@ -41,12 +41,12 @@ func TestMiddleware_Append(t *testing.T) {
 		_, _ = w.Write([]byte(responseBody))
 	})
 
-	middleware := getMiddleware(t, i, 2, 4)
+	middleware := getMiddleware(t, i, 0, 6)
 
 	middleware.Append(
 		// the middleware will be add here
 		getMiddleware(t, i, 1, 5),
-		getMiddleware(t, i, 0, 6),
+		getMiddleware(t, i, 2, 4),
 	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
 }
 
@@ -66,10 +66,10 @@ func TestMiddleware_Prepend(t *testing.T) {
 		_, _ = w.Write([]byte(responseBody))
 	})
 
-	middleware := getMiddleware(t, i, 0, 6)
+	middleware := getMiddleware(t, i, 2, 4)
 
 	middleware.Prepend(
-		getMiddleware(t, i, 2, 4),
+		getMiddleware(t, i, 0, 6),
 		getMiddleware(t, i, 1, 5),
 		// the middleware will be add here
 	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
@@ -142,14 +142,14 @@ func TestMiddlewares_Append(t *testing.T) {
 	})
 
 	middlewares := httpware.MiddlewareStack(
-		getMiddleware(t, i, 3, 5),
-		getMiddleware(t, i, 2, 6),
+		getMiddleware(t, i, 0, 8),
+		getMiddleware(t, i, 1, 7),
 	)
 
 	middlewares.Append(
 		// the middlewares will be add here
-		getMiddleware(t, i, 1, 7),
-		getMiddleware(t, i, 0, 8),
+		getMiddleware(t, i, 2, 6),
+		getMiddleware(t, i, 3, 5),
 	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
 }
 
@@ -170,13 +170,13 @@ func TestMiddlewares_Prepend(t *testing.T) {
 	})
 
 	middlewares := httpware.MiddlewareStack(
-		getMiddleware(t, i, 1, 7),
-		getMiddleware(t, i, 0, 8),
+		getMiddleware(t, i, 2, 6),
+		getMiddleware(t, i, 3, 5),
 	)
 
 	middlewares.Prepend(
-		getMiddleware(t, i, 3, 5),
-		getMiddleware(t, i, 2, 6),
+		getMiddleware(t, i, 0, 8),
+		getMiddleware(t, i, 1, 7),
 		// the middlewares will be add here
 	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
 }
@@ -202,8 +202,8 @@ func ExampleMiddlewareStack() {
 	}
 	// create the middleware stack
 	stack := httpware.MiddlewareStack(
-		logResponseHeaders,
 		addCustomResponseHeader,
+		logResponseHeaders,
 	)
 	// create a server
 	srv := http.NewServeMux()

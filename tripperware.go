@@ -35,6 +35,21 @@ func (t Tripperware) DecorateClient(client *http.Client, clone bool) *http.Clien
 	return client
 }
 
+// Append will add given tripperwares after existing one
+// t1.Append(t2, t3) == [t1, t2, t3]
+// t1.Append(t2, t3).DecorateRoundTripper(<yourTripper>) == t3(t2(t1(<yourTripper>)))
+func (t Tripperware) Append(tripperwares ...Tripperware) Tripperwares {
+	return append([]Tripperware{t}, tripperwares...)
+}
+
+// Prepend will add given tripperwares before existing one
+// t1.Prepend(t2, t3) => [t2, t3, t1]
+// t1.Prepend(t2, t3).DecorateRoundTripper(<yourTripper>) == t1(t3(t2(<yourTripper>)))
+func (t Tripperware) Prepend(tripperwares ...Tripperware) Tripperwares {
+	return append(tripperwares, t)
+}
+
+// [t1, t2, t3].DecorateRoundTripper(roundTripper) == t3(t2(t1(roundTripper)))
 type Tripperwares []Tripperware
 
 // RoundTrip implements RoundTripper interface
@@ -75,6 +90,20 @@ func (t Tripperwares) DecorateRoundTripFunc(tripper RoundTripFunc) http.RoundTri
 		return t.DecorateRoundTripper(http.DefaultTransport)
 	}
 	return t.DecorateRoundTripper(tripper)
+}
+
+// Append will add given tripperwares after existing one
+// [t1, t2].Append(t3, t4) == [t1, t2, t3, t4]
+// [t1, t2].Append(t3, t4).DecorateRoundTripper(<yourTripper>) == t4(t3(t2(t1(<yourTripper>))))
+func (t Tripperwares) Append(tripperwares ...Tripperware) Tripperwares {
+	return append(t, tripperwares...)
+}
+
+// Prepend will add given tripperwares before existing one
+// [t1, t2].Prepend(t3, t4) == [t3, t4, t1, t2]
+// [t1, t2].Prepend(t3, t4).DecorateRoundTripper(<yourTripper>) == t2(t1(t4(t3(<yourTripper>))))
+func (t Tripperwares) Prepend(tripperwares ...Tripperware) Tripperwares {
+	return append(tripperwares, t...)
 }
 
 // TripperwareStack allows to stack multi tripperware in order to decorate an http roundTripper

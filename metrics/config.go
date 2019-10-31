@@ -24,7 +24,7 @@ func (c *Config) apply(options ...Option) *Config {
 	return c
 }
 
-// NewConfig returns a new metrics configuration with all options apply
+// NewConfig returns a new metrics configuration with all options applied
 func NewConfig(recorder Recorder, options ...Option) *Config {
 	config := &Config{
 		Recorder:                recorder,

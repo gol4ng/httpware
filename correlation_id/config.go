@@ -18,7 +18,7 @@ func (c *Config) apply(options ...Option) *Config {
 	return c
 }
 
-// GetConfig returns a new correlation configuration with all options apply
+// GetConfig returns a new correlation configuration with all options applied
 func GetConfig(options ...Option) *Config {
 	config := &Config{
 		HeaderName: HeaderName,

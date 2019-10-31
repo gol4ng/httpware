@@ -30,7 +30,7 @@ func TestCorrelationId(t *testing.T) {
 		handlerReq = r
 	})
 
-	middleware.CorrelationId(correlation_id.NewConfig())(handler).ServeHTTP(responseWriter, req)
+	middleware.CorrelationId()(handler).ServeHTTP(responseWriter, req)
 	respHeaderValue := responseWriter.Header().Get(correlation_id.HeaderName)
 	reqContextValue := handlerReq.Context().Value(correlation_id.HeaderName).(string)
 	assert.Equal(t, "p1LGIehp1s", req.Header.Get(correlation_id.HeaderName))
@@ -45,19 +45,15 @@ func TestCorrelationId(t *testing.T) {
 
 func ExampleCorrelationId() {
 	port := ":5001"
-
-	config := correlation_id.NewConfig()
-	// you can override default header name
-	config.HeaderName = "my-personal-header-name"
-	// you can override default id generator
-	config.IdGenerator = func(request *http.Request) string {
-		return "my-fixed-request-id"
-	}
-
 	// we recommend to use MiddlewareStack to simplify managing all wanted middlewares
 	// caution middleware order matters
 	stack := httpware.MiddlewareStack(
-		middleware.CorrelationId(config),
+		middleware.CorrelationId(
+			correlation_id.WithHeaderName("my-personal-header-name"),
+			correlation_id.WithIdGenerator(func(request *http.Request) string {
+				return "my-fixed-request-id"
+			}),
+		),
 	)
 
 	srv := http.NewServeMux()
@@ -68,7 +64,7 @@ func ExampleCorrelationId() {
 	}()
 
 	resp, err := http.Get("http://localhost" + port)
-	fmt.Printf("%s: %v %v\n", config.HeaderName, resp.Header.Get(config.HeaderName), err)
+	fmt.Printf("%s: %v %v\n", "my-personal-header-name", resp.Header.Get("my-personal-header-name"), err)
 
 	//Output: my-personal-header-name: my-fixed-request-id <nil>
 }

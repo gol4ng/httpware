@@ -10,7 +10,8 @@ import (
 
 // CorrelationId tripperware gets request id header if provided or generates a request id
 // It will add the request ID to request context
-func CorrelationId(config *correlation_id.Config) httpware.Tripperware {
+func CorrelationId(options ...correlation_id.Option) httpware.Tripperware {
+	config := correlation_id.GetConfig(options...)
 	return func(next http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 			if v, ok := req.Context().Value(config.HeaderName).(string); ok {

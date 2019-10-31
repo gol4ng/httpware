@@ -10,7 +10,8 @@ import (
 
 // CorrelationId middleware get request id header if provided or generate a request id
 // It will add the request ID to request context and add it to response header to
-func CorrelationId(config *correlation_id.Config) httpware.Middleware {
+func CorrelationId(options ...correlation_id.Option) httpware.Middleware {
+	config := correlation_id.GetConfig(options...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
 			id := req.Header.Get(config.HeaderName)

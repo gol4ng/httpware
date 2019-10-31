@@ -24,7 +24,7 @@ func (c *Config) apply(options ...Option) *Config {
 	return c
 }
 
-// NewConfig return a new metrics configuration with all options applied
+// NewConfig returns a new metrics configuration with all options apply
 func NewConfig(recorder Recorder, options ...Option) *Config {
 	config := &Config{
 		Recorder:                recorder,
@@ -38,30 +38,31 @@ func NewConfig(recorder Recorder, options ...Option) *Config {
 	return config.apply(options...)
 }
 
-// Option was metrics middleware/tripperware configurable options
+// Option defines a metrics middleware/tripperware configuration option
 type Option func(*Config)
 
-// WithSplitStatus will configure SplitStatus metrics options
+// WithSplitStatus will configure SplitStatus metrics option
 func WithSplitStatus(splitStatus bool) Option {
 	return func(config *Config) {
 		config.SplitStatus = splitStatus
 	}
 }
 
-// WithObserveResponseSize will configure ObserveResponseSize metrics options
+// WithObserveResponseSize will configure ObserveResponseSize metrics option
 func WithObserveResponseSize(observeResponseSize bool) Option {
 	return func(config *Config) {
 		config.ObserveResponseSize = observeResponseSize
 	}
 }
 
-// WithMeasureInflightRequests will configure MeasureInflightRequests metrics options
+// WithMeasureInflightRequests will configure MeasureInflightRequests metrics option
 func WithMeasureInflightRequests(measureInflightRequests bool) Option {
 	return func(config *Config) {
 		config.MeasureInflightRequests = measureInflightRequests
 	}
 }
-// WithIdentifierProvider will configure IdentifierProvider metrics options
+
+// WithIdentifierProvider will configure IdentifierProvider metrics option
 func WithIdentifierProvider(identifierProvider func(req *http.Request) string) Option {
 	return func(config *Config) {
 		config.IdentifierProvider = identifierProvider

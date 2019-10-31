@@ -18,7 +18,7 @@ func (c *Config) apply(options ...Option) *Config {
 	return c
 }
 
-// GetConfig return a new correlation configuration with all options applied
+// GetConfig returns a new correlation configuration with all options apply
 func GetConfig(options ...Option) *Config {
 	config := &Config{
 		HeaderName: HeaderName,
@@ -29,17 +29,17 @@ func GetConfig(options ...Option) *Config {
 	return config.apply(options...)
 }
 
-// Option was correlation middleware/tripperware configurable options
+// Option defines a correlationId middleware/tripperware configuration option
 type Option func(*Config)
 
-// WithHeaderName will configure HeaderName correlation options
+// WithHeaderName will configure HeaderName correlation option
 func WithHeaderName(headerName string) Option {
 	return func(config *Config) {
 		config.HeaderName = headerName
 	}
 }
 
-// WithIdGenerator will configure IdGenerator correlation options
+// WithIdGenerator will configure IdGenerator correlation option
 func WithIdGenerator(idGenerator func(*http.Request) string) Option {
 	return func(config *Config) {
 		config.IdGenerator = idGenerator

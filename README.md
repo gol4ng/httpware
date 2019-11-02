@@ -10,8 +10,8 @@
 
 Package httpware is a collection of middleware (net/http.Handler wrapper) and tripperware (net/http.RoundTripper wrapper)
 
-- **CorrelationId** that get or create a `correlation_id` and add it to the `http.request` Context and in `http.response` header (in order to propagate this ID throught all microservice)
-- **Metrics** it will use given Recorder to collect `inflight request`(current parrallel request count), request duration and response size 
+- **CorrelationId** gets or creates a `correlation_id` and adds it to the `http.request` Context and in the `http.response` header (in order to propagate this ID throught all microservices)
+- **Metrics** will use a given Recorder to collect `inflight request`(current parrallel request count), `request duration` and `response size`.
 
 | Name   | Middleware | Tripperware|
 | ------ | :--------: | :--------: |
@@ -84,23 +84,23 @@ func main(){
 
 ## Middlewares
 
-A middleware is a `http.Handler` decorator, his role is to wrap arround `http.Handler` or another middleware
+A middleware is an `http.Handler` decorator, its role is to wrap arround `http.Handler` or another middleware
 
-A middleware stack is a collection of middleware (`[]Middleware`) that act has single Middleware (Append/Prepend).
-A stack allow you to DecorateHandler and DecorateHandlerFunc
+A middleware stack is a collection of middleware (`[]Middleware`) that acts has a single Middleware (Append/Prepend).
 
+A stack allows you to DecorateHandler and DecorateHandlerFunc
 
 ## Tripperwares
 
-A tripperware is a `http.RoundTripper` decorator, his role is to wrap arround `http.RoundTripper` or another tripperware
+A tripperware is an `http.RoundTripper` decorator, its role is to wrap arround `http.RoundTripper` or another tripperware
 
-A tripperware stack is a collection of tripperware (`[]Tripperware`) that act has single Tripperware (RoundTrip/DecorateClient/Append/Prepend).
+A tripperware stack is a collection of tripperware (`[]Tripperware`) that acts has a single Tripperware (RoundTrip/DecorateClient/Append/Prepend).
 
-A stack allow you to DecorateRoundTripper and DecorateRoundTripFunc.
+A stack allows you to DecorateRoundTripper and DecorateRoundTripFunc.
 
 ### Decorate existing client
  
-You can decorate existing `http.Client` 
+You can decorate an existing `http.Client`
 
 ```go
 client := &http.Client{}
@@ -114,7 +114,7 @@ _, _ = client.Get("fake-address.foo")
 
 ### Act has `http.RoundTripper`
 
-A tripperware can be use has `http.RoundTripper` 
+A tripperware can be use has an `http.RoundTripper` 
 > `tripperware.CorrelationId() == tripperware.CorrelationId()(http.DefaultTransport)`
 
 ```go
@@ -128,7 +128,7 @@ _, _ = client.Get("fake-address.foo")
 
 ### Become a tripperware stack
 
-The `Append` `Prepend` functions will convert tripperware into `[]Tripperware`
+The `Append` and `Prepend` functions will convert a tripperware into a `[]Tripperware`
 
 ```go
 roundTripper := tripperware.CorrelationId()
@@ -149,13 +149,13 @@ _, _ = client.Get("fake-address.foo")
 
 ## Stack computation
 
-The stack gonna be compute when you decorate final round tripper.
+The stack is gonna be computed when you decorate the final round tripper.
 
-m1, m2, m3 are middleware
+m1, m2, m3 are middlewares
 
 `[m1, m2, m3].DecorateHandler(<yourHandler>) == m1( m2( m3( <yourHandler> ) ) )`
 
-t1 t2 t3 are tripperware
+t1 t2 t3 are tripperwares
 
 `[t1, t2, t3].DecorateRoundTripper(<yourTripper>) == t1( t2( t3( <yourTripper> ) ) )`
 

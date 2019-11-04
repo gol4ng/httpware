@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware/metrics"
+	"github.com/gol4ng/httpware/v2/metrics"
 )
 
 func TestConfig_Options(t *testing.T) {

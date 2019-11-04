@@ -9,9 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware"
-	"github.com/gol4ng/httpware/correlation_id"
-	"github.com/gol4ng/httpware/middleware"
+	"github.com/gol4ng/httpware/v2"
+	"github.com/gol4ng/httpware/v2/correlation_id"
+	"github.com/gol4ng/httpware/v2/middleware"
 )
 
 func TestCorrelationId(t *testing.T) {

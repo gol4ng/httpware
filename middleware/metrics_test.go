@@ -10,11 +10,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware"
-	"github.com/gol4ng/httpware/metrics"
-	prom "github.com/gol4ng/httpware/metrics/prometheus"
-	"github.com/gol4ng/httpware/middleware"
-	"github.com/gol4ng/httpware/mocks"
+	"github.com/gol4ng/httpware/v2"
+	"github.com/gol4ng/httpware/v2/metrics"
+	prom "github.com/gol4ng/httpware/v2/metrics/prometheus"
+	"github.com/gol4ng/httpware/v2/middleware"
+	"github.com/gol4ng/httpware/v2/mocks"
 )
 
 func TestMetrics(t *testing.T) {

@@ -34,8 +34,8 @@ import (
 	"os"
 	"runtime"
 	
-	"github.com/gol4ng/httpware"
-	"github.com/gol4ng/httpware/tripperware"
+	"github.com/gol4ng/httpware/v2"
+	"github.com/gol4ng/httpware/v2/tripperware"
 )
 
 func main(){
@@ -60,9 +60,9 @@ import (
 	"os"
 	"runtime"
 	
-	"github.com/gol4ng/httpware"
-	"github.com/gol4ng/httpware/correlation_id"
-	"github.com/gol4ng/httpware/middleware"
+	"github.com/gol4ng/httpware/v2"
+	"github.com/gol4ng/httpware/v2/correlation_id"
+	"github.com/gol4ng/httpware/v2/middleware"
 )
 
 func main(){

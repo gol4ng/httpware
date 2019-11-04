@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/gol4ng/httpware/metrics"
+	"github.com/gol4ng/httpware/v2/metrics"
 
 	"github.com/prometheus/client_golang/prometheus"
 )

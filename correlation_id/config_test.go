@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware/correlation_id"
+	"github.com/gol4ng/httpware/v2/correlation_id"
 )
 
 func TestNewConfig(t *testing.T) {

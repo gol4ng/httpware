@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gol4ng/httpware"
-	"github.com/gol4ng/httpware/metrics"
+	"github.com/gol4ng/httpware/v2"
+	"github.com/gol4ng/httpware/v2/metrics"
 )
 
 func Metrics(recorder metrics.Recorder, options ... metrics.Option) httpware.Middleware {

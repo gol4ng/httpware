@@ -2,14 +2,14 @@ package httpware_test
 
 import (
 	"fmt"
-	"github.com/gol4ng/httpware/correlation_id"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware"
+	"github.com/gol4ng/httpware/v2"
+	"github.com/gol4ng/httpware/v2/correlation_id"
 )
 
 func getMiddleware(t *testing.T, i *int, iBefore int, iAfter int) httpware.Middleware {

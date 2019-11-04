@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gol4ng/httpware"
-	"github.com/gol4ng/httpware/correlation_id"
+	"github.com/gol4ng/httpware/v2"
+	"github.com/gol4ng/httpware/v2/correlation_id"
 )
 
 // CorrelationId middleware get request id header if provided or generate a request id

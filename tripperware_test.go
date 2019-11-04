@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware"
-	"github.com/gol4ng/httpware/mocks"
+	"github.com/gol4ng/httpware/v2"
+	"github.com/gol4ng/httpware/v2/mocks"
 )
 
 func getTripper(t *testing.T, i *int, iBefore int, iAfter int) httpware.Tripperware {

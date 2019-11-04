@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware/correlation_id"
+	"github.com/gol4ng/httpware/v2/correlation_id"
 )
 
 func Test_LockedSource_Int63(t *testing.T) {

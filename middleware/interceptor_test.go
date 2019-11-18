@@ -18,7 +18,7 @@ func TestInterceptor(t *testing.T) {
 	responseWriter := &httptest.ResponseRecorder{}
 	stack := httpware.MiddlewareStack(
 		middleware.Interceptor(
-			func(responseWriterInterceptor *middleware.ResponseWriterInterceptor, req *http.Request) {
+			middleware.WithBefore(func(responseWriterInterceptor *middleware.ResponseWriterInterceptor, req *http.Request) {
 				buf := new(bytes.Buffer)
 				_, err := buf.ReadFrom(req.Body)
 				assert.NoError(t, err)
@@ -29,8 +29,8 @@ func TestInterceptor(t *testing.T) {
 
 				req.Header.Add("X-Interceptor-Request-Header", "interceptor")
 				responseWriterInterceptor.Header().Add("X-Interceptor-Response-Header1", "interceptor1")
-			},
-			func(responseWriterInterceptor *middleware.ResponseWriterInterceptor, req *http.Request) {
+			}),
+			middleware.WithAfter(func(responseWriterInterceptor *middleware.ResponseWriterInterceptor, req *http.Request) {
 				assert.Equal(t, http.MethodGet, req.Method)
 				assert.Equal(t, "/foo", req.URL.String())
 				assert.Equal(t, "interceptor", req.Header.Get("X-Interceptor-Request-Header"))
@@ -42,7 +42,7 @@ func TestInterceptor(t *testing.T) {
 				assert.Equal(t, "interceptor2", responseWriterInterceptor.Header().Get("X-Interceptor-Response-Header2"))
 
 				responseWriterInterceptor.Header().Add("X-Interceptor-Response-Header3", "interceptor3")
-			},
+			}),
 		),
 	)
 

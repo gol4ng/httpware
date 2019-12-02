@@ -22,7 +22,7 @@ func (w *ResponseWriterInterceptor) Write(p []byte) (int, error) {
 
 func NewResponseWriterInterceptor(writer http.ResponseWriter) *ResponseWriterInterceptor {
 	return &ResponseWriterInterceptor{
-		StatusCode:     http.StatusServiceUnavailable,
+		StatusCode:     http.StatusOK,
 		ResponseWriter: writer,
 	}
 }

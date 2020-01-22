@@ -44,7 +44,7 @@ func TestCorrelationId(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleCorrelationId() {
-	port := ":5001"
+	port := ":9103"
 	// we recommend to use MiddlewareStack to simplify managing all wanted middlewares
 	// caution middleware order matters
 	stack := httpware.MiddlewareStack(

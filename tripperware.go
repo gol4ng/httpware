@@ -4,6 +4,11 @@ import (
 	"net/http"
 )
 
+// NopTripperware just return given http.RoundTripper
+func NopTripperware(next http.RoundTripper) http.RoundTripper {
+	return next
+}
+
 // RoundTripFunc wraps a func to make it into an http.RoundTripper. Similar to http.HandleFunc.
 type RoundTripFunc func(*http.Request) (*http.Response, error)
 

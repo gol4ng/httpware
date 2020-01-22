@@ -11,18 +11,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSkip(t *testing.T) {
+func TestEnable(t *testing.T) {
 	tests := []struct {
-		conditionResult  bool
+		enable           bool
 		expectedExecuted bool
 	}{
 		{
-			conditionResult:  true,
-			expectedExecuted: false,
+			enable:           true,
+			expectedExecuted: true,
 		},
 		{
-			conditionResult:  false,
-			expectedExecuted: true,
+			enable:           false,
+			expectedExecuted: false,
 		},
 	}
 
@@ -45,9 +45,7 @@ func TestSkip(t *testing.T) {
 	for k, test := range tests {
 		executed = false
 		t.Run(fmt.Sprintf("test %d (%v)", k, test), func(t *testing.T) {
-			middleware.Skip(func(request *http.Request) bool {
-				return test.conditionResult
-			}, dummyMiddleware)(handler).ServeHTTP(responseWriter, request)
+			middleware.Enable(test.enable, dummyMiddleware)(handler).ServeHTTP(responseWriter, request)
 
 			assert.Equal(t, test.expectedExecuted, executed)
 		})
@@ -58,9 +56,10 @@ func TestSkip(t *testing.T) {
 // ========================================= EXAMPLES ==================================================================
 // =====================================================================================================================
 
-func ExampleSkip() {
-	port := ":9102"
+func ExampleEnable() {
+	port := ":9104"
 
+	enableDummyMiddleware := true // or false
 	dummyMiddleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			request.Header.Set("FakeHeader", "this header is set when not /home url")
@@ -68,15 +67,13 @@ func ExampleSkip() {
 		})
 	}
 	stack := httpware.MiddlewareStack(
-		middleware.Skip(func(request *http.Request) bool {
-			return request.URL.Path == "/home"
-		}, dummyMiddleware),
+		middleware.Enable(enableDummyMiddleware, dummyMiddleware),
 	)
 
 	// create a server in order to show it work
 	srv := http.NewServeMux()
 	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Printf("server receive request %s with request: %s\n", request.URL.Path, request.Header.Get("FakeHeader"))
+		fmt.Println("server receive request with request:", request.Header.Get("FakeHeader"))
 	})
 
 	go func() {
@@ -86,9 +83,7 @@ func ExampleSkip() {
 	}()
 
 	_, _ = http.Get("http://localhost" + port + "/")
-	_, _ = http.Get("http://localhost" + port + "/home")
 
 	// Output:
-	//server receive request / with request: this header is set when not /home url
-	//server receive request /home with request:
+	//server receive request with request: this header is set when not /home url
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSkip(t *testing.T) {
+func TestEnable(t *testing.T) {
 	roundTripperMock := &mocks.RoundTripper{}
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	resp := &http.Response{
@@ -23,16 +23,16 @@ func TestSkip(t *testing.T) {
 	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
 
 	tests := []struct {
-		conditionResult  bool
+		enable           bool
 		expectedExecuted bool
 	}{
 		{
-			conditionResult:  true,
-			expectedExecuted: false,
+			enable:           true,
+			expectedExecuted: true,
 		},
 		{
-			conditionResult:  false,
-			expectedExecuted: true,
+			enable:           false,
+			expectedExecuted: false,
 		},
 	}
 
@@ -47,9 +47,7 @@ func TestSkip(t *testing.T) {
 	for k, test := range tests {
 		executed = false
 		t.Run(fmt.Sprintf("test %d (%v)", k, test), func(t *testing.T) {
-			resp2, err := tripperware.Skip(func(request *http.Request) bool {
-				return test.conditionResult
-			}, dummyTripperware)(roundTripperMock).RoundTrip(req)
+			resp2, err := tripperware.Enable(test.enable, dummyTripperware, )(roundTripperMock).RoundTrip(req)
 
 			assert.Nil(t, err)
 			assert.Equal(t, resp, resp2)
@@ -62,9 +60,10 @@ func TestSkip(t *testing.T) {
 // ========================================= EXAMPLES ==================================================================
 // =====================================================================================================================
 
-func ExampleSkip() {
-	port := ":9002"
+func ExampleEnable() {
+	port := ":9003"
 
+	enableDummyTripperware := true //false
 	dummyTripperware := func(next http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(request *http.Request) (*http.Response, error) {
 			request.Header.Set("FakeHeader", "this header is set when not /home url")
@@ -74,9 +73,7 @@ func ExampleSkip() {
 
 	// create http client using the tripperwareStack as RoundTripper
 	client := http.Client{
-		Transport: tripperware.Skip(func(request *http.Request) bool {
-			return request.URL.Path == "/home"
-		}, dummyTripperware),
+		Transport: tripperware.Enable(enableDummyTripperware, dummyTripperware),
 	}
 
 	// create a server in order to show it work
@@ -92,9 +89,7 @@ func ExampleSkip() {
 	}()
 
 	_, _ = client.Get("http://localhost" + port + "/")
-	_, _ = client.Get("http://localhost" + port + "/home")
 
 	// Output:
 	//server receive request with request: this header is set when not /home url
-	//server receive request with request:
 }

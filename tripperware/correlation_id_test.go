@@ -97,7 +97,7 @@ func TestCorrelationIdCustom(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleCorrelationId() {
-	port := ":9901"
+	port := ":9001"
 
 	// create http client using the tripperwareStack as RoundTripper
 	client := http.Client{

@@ -44,11 +44,13 @@ func TestMiddleware_Append(t *testing.T) {
 
 	middleware := getMiddleware(t, i, 0, 6)
 
-	middleware.Append(
+	stack := middleware.Append(
 		// the middleware will be add here
 		getMiddleware(t, i, 1, 5),
 		getMiddleware(t, i, 2, 4),
-	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
+	)
+
+	stack.DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
 }
 
 func TestMiddleware_Prepend(t *testing.T) {
@@ -69,11 +71,13 @@ func TestMiddleware_Prepend(t *testing.T) {
 
 	middleware := getMiddleware(t, i, 2, 4)
 
-	middleware.Prepend(
+	stack := middleware.Prepend(
 		getMiddleware(t, i, 0, 6),
 		getMiddleware(t, i, 1, 5),
 		// the middleware will be add here
-	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
+	)
+
+	stack.DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
 }
 
 func TestMiddlewares_DecorateHandler(t *testing.T) {
@@ -142,16 +146,18 @@ func TestMiddlewares_Append(t *testing.T) {
 		_, _ = w.Write([]byte(responseBody))
 	})
 
-	middlewares := httpware.MiddlewareStack(
+	stack := httpware.MiddlewareStack(
 		getMiddleware(t, i, 0, 8),
 		getMiddleware(t, i, 1, 7),
 	)
 
-	middlewares.Append(
+	stack = stack.Append(
 		// the middlewares will be add here
 		getMiddleware(t, i, 2, 6),
 		getMiddleware(t, i, 3, 5),
-	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
+	)
+
+	stack.DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
 }
 
 func TestMiddlewares_Prepend(t *testing.T) {
@@ -170,16 +176,18 @@ func TestMiddlewares_Prepend(t *testing.T) {
 		_, _ = w.Write([]byte(responseBody))
 	})
 
-	middlewares := httpware.MiddlewareStack(
+	stack := httpware.MiddlewareStack(
 		getMiddleware(t, i, 2, 6),
 		getMiddleware(t, i, 3, 5),
 	)
 
-	middlewares.Prepend(
+	stack = stack.Prepend(
 		getMiddleware(t, i, 0, 8),
 		getMiddleware(t, i, 1, 7),
 		// the middlewares will be add here
-	).DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
+	)
+
+	stack.DecorateHandler(handler).ServeHTTP(responseWriterMock, req)
 }
 
 // =====================================================================================================================

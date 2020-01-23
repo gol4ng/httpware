@@ -134,7 +134,7 @@ The `Append` and `Prepend` functions will convert a tripperware into a `[]Trippe
 
 ```go
 roundTripper := tripperware.CorrelationId()
-roundTripper.Prepend(func(t http.RoundTripper) http.RoundTripper {
+stack := roundTripper.Prepend(func(t http.RoundTripper) http.RoundTripper {
     return httpware.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
         fmt.Println("http request headers :", req.Header)
         return t.RoundTrip(req)
@@ -142,7 +142,7 @@ roundTripper.Prepend(func(t http.RoundTripper) http.RoundTripper {
 })
 
 client := &http.Client{
-    Transport:roundTripper,
+    Transport:stack,
 }
 
 _, _ = client.Get("fake-address.foo")
@@ -193,4 +193,24 @@ t1 t2 t3 are tripperwares
 	//C after
 	//B after
 	//A after
+```
+
+## Append Prepend
+
+⚠️ Caution the `append` `prepend` function WILL NOT affect the input it will RETURN a new object so dont forget to assign the result
+
+```go
+	stack := httpware.TripperwareStack(
+		myTripperware(),
+    )
+	stack = stack.Append(
+		myOtherTripperware(),
+    )
+```
+
+```go
+	tripperware := myTripperware(),
+	stack := tripperware.Append(
+		myOtherTripperware(),
+    )
 ```

@@ -75,7 +75,7 @@ func ExampleSkip() {
 	// create a server in order to show it work
 	srv := http.NewServeMux()
 	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println("server receive request with request:", request.Header.Get("FakeHeader"))
+		fmt.Printf("server receive request %s with request: %s\n", request.URL.Path, request.Header.Get("FakeHeader"))
 	})
 
 	go func() {
@@ -88,6 +88,6 @@ func ExampleSkip() {
 	_, _ = http.Get("http://localhost" + port + "/home")
 
 	// Output:
-	//server receive request with request: this header is set when not /home url
-	//server receive request with request:
+	//server receive request / with request: this header is set when not /home url
+	//server receive request /home with request:
 }

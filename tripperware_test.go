@@ -27,6 +27,15 @@ func getTripper(t *testing.T, i *int, iBefore int, iAfter int) httpware.Tripperw
 	})
 }
 
+func getTripperShouldNotBeCalled(t *testing.T) httpware.Tripperware {
+	return func(roundTripper http.RoundTripper) http.RoundTripper {
+		return httpware.RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
+			assert.Fail(t, "")
+			return roundTripper.RoundTrip(req)
+		})
+	}
+}
+
 func TestTripperware_RoundTrip(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://localhost/", nil)
 	resp := &http.Response{}
@@ -121,11 +130,38 @@ func TestTripperware_Append(t *testing.T) {
 
 	tripper := getTripper(t, i, 0, 6)
 
-	r, err := tripper.Append(
+	stack := tripper.Append(
 		// the tripper will be add here
 		getTripper(t, i, 1, 5),
 		getTripper(t, i, 2, 4),
-	).DecorateRoundTripper(roundTripperMock).RoundTrip(req)
+	)
+	r, err := stack.DecorateRoundTripper(roundTripperMock).RoundTrip(req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, r, resp)
+}
+
+func TestTripperware_AppendIf(t *testing.T) {
+	req, _ := http.NewRequest("GET", "http://localhost/", nil)
+	resp := &http.Response{}
+
+	i := new(int)
+	*i = 0
+	roundTripperMock := httpware.RoundTripFunc(func(*http.Request) (*http.Response, error) {
+		assert.Equal(t, 1, *i)
+		*i++
+		return resp, nil
+	})
+
+	tripper := getTripper(t, i, 0, 2)
+
+	stack := tripper.AppendIf(
+		false,
+		// the tripper will be add here if condition=true
+		getTripperShouldNotBeCalled(t),
+		getTripperShouldNotBeCalled(t),
+	)
+	r, err := stack.DecorateRoundTripper(roundTripperMock).RoundTrip(req)
 
 	assert.Nil(t, err)
 	assert.Equal(t, r, resp)
@@ -145,11 +181,38 @@ func TestTripperware_Prepend(t *testing.T) {
 
 	tripper := getTripper(t, i, 2, 4)
 
-	r, err := tripper.Prepend(
+	stack := tripper.Prepend(
 		getTripper(t, i, 0, 6),
 		getTripper(t, i, 1, 5),
 		// the tripper will be add here
-	).DecorateRoundTripper(roundTripperMock).RoundTrip(req)
+	)
+	r, err := stack.DecorateRoundTripper(roundTripperMock).RoundTrip(req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, r, resp)
+}
+
+func TestTripperware_PrependIf(t *testing.T) {
+	req, _ := http.NewRequest("GET", "http://localhost/", nil)
+	resp := &http.Response{}
+
+	i := new(int)
+	*i = 0
+	roundTripperMock := httpware.RoundTripFunc(func(*http.Request) (*http.Response, error) {
+		assert.Equal(t, 1, *i)
+		*i++
+		return resp, nil
+	})
+
+	tripper := getTripper(t, i, 0, 2)
+
+	stack := tripper.PrependIf(
+		false,
+		getTripperShouldNotBeCalled(t),
+		getTripperShouldNotBeCalled(t),
+		// the tripper will be add here if condition=true
+	)
+	r, err := stack.DecorateRoundTripper(roundTripperMock).RoundTrip(req)
 
 	assert.Nil(t, err)
 	assert.Equal(t, r, resp)
@@ -298,16 +361,48 @@ func TestTripperwares_Append(t *testing.T) {
 		return resp, nil
 	})
 
-	trippers := httpware.TripperwareStack(
+	stack := httpware.TripperwareStack(
 		getTripper(t, i, 0, 8),
 		getTripper(t, i, 1, 7),
 	)
 
-	r, err := trippers.Append(
+	stack.Append(
 		// the tripper will be add here
 		getTripper(t, i, 2, 6),
 		getTripper(t, i, 3, 5),
-	).DecorateRoundTripper(roundTripperMock).RoundTrip(req)
+	)
+
+	r, err := stack.DecorateRoundTripper(roundTripperMock).RoundTrip(req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, r, resp)
+}
+
+func TestTripperwares_AppendIf(t *testing.T) {
+	req, _ := http.NewRequest("GET", "http://localhost/", nil)
+	resp := &http.Response{}
+
+	i := new(int)
+	*i = 0
+	roundTripperMock := httpware.RoundTripFunc(func(*http.Request) (*http.Response, error) {
+		assert.Equal(t, 2, *i)
+		*i++
+		return resp, nil
+	})
+
+	stack := httpware.TripperwareStack(
+		getTripper(t, i, 0, 4),
+		getTripper(t, i, 1, 3),
+	)
+
+	stack.AppendIf(
+		false,
+		// the tripper will be add here if condition=true
+		getTripperShouldNotBeCalled(t),
+		getTripperShouldNotBeCalled(t),
+	)
+
+	r, err := stack.DecorateRoundTripper(roundTripperMock).RoundTrip(req)
 
 	assert.Nil(t, err)
 	assert.Equal(t, r, resp)
@@ -325,16 +420,46 @@ func TestTripperwares_Prepend(t *testing.T) {
 		return resp, nil
 	})
 
-	trippers := httpware.TripperwareStack(
+	stack := httpware.TripperwareStack(
 		getTripper(t, i, 2, 6),
 		getTripper(t, i, 3, 5),
 	)
 
-	r, err := trippers.Prepend(
+	stack.Prepend(
 		getTripper(t, i, 0, 8),
 		getTripper(t, i, 1, 7),
 		// the tripper will be add here
-	).DecorateRoundTripper(roundTripperMock).RoundTrip(req)
+	)
+	r, err := stack.DecorateRoundTripper(roundTripperMock).RoundTrip(req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, r, resp)
+}
+
+func TestTripperwares_PrependIf(t *testing.T) {
+	req, _ := http.NewRequest("GET", "http://localhost/", nil)
+	resp := &http.Response{}
+
+	i := new(int)
+	*i = 0
+	roundTripperMock := httpware.RoundTripFunc(func(*http.Request) (*http.Response, error) {
+		assert.Equal(t, 2, *i)
+		*i++
+		return resp, nil
+	})
+
+	stack := httpware.TripperwareStack(
+		getTripper(t, i, 0, 4),
+		getTripper(t, i, 1, 3),
+	)
+
+	stack.PrependIf(
+		false,
+		getTripperShouldNotBeCalled(t),
+		getTripperShouldNotBeCalled(t),
+		// the tripper will be add here if condition=true
+	)
+	r, err := stack.DecorateRoundTripper(roundTripperMock).RoundTrip(req)
 
 	assert.Nil(t, err)
 	assert.Equal(t, r, resp)

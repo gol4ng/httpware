@@ -19,6 +19,7 @@ Package httpware is a collection of middleware (net/http.Handler wrapper) and tr
 |**Metrics**|X|X|
 |**Interceptor**|X|X|
 |**Skip**|X|X|
+|**Enable**|X|X|
 
 ## Installation
 
@@ -193,6 +194,31 @@ t1 t2 t3 are tripperwares
 	//C after
 	//B after
 	//A after
+```
+
+## Enable/skip middleware or tripperware
+
+Some times you need to have a dynamic middleware|tripperware stack 
+
+For example you need to have a middleware activated on debug mode
+If Enable false, the middleware will not be added to the middleware stack 
+
+```go
+    debug := true
+    stack := httpware.MiddlewareStack(
+        middleware.Enable(debug, middleware.CorrelationId()),
+    )
+```
+
+You can dynamically skip a middleware with your own rule.  
+If the callback return true it will skip the execution of targeted middleware
+
+```go
+    stack := httpware.MiddlewareStack(
+        tripperware.Skip(func(request *http.Request) bool {
+            return request.URL.Path == "/home"
+        }, middleware.CorrelationId()),
+    )
 ```
 
 ## AppendIf PrependIf

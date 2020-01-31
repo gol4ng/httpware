@@ -2,6 +2,11 @@ package httpware
 
 import "net/http"
 
+// NopMiddleware just return given http.Handler
+func NopMiddleware(next http.Handler) http.Handler {
+	return next
+}
+
 // Middleware represents an http server middleware
 // it wraps an http.Handler with another one
 type Middleware func(http.Handler) http.Handler

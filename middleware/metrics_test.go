@@ -61,7 +61,7 @@ func TestMetrics(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleMetrics() {
-	port := ":5002"
+	port := ":9101"
 
 	recorder := prom.NewRecorder(prom.Config{}).RegisterOn(nil)
 

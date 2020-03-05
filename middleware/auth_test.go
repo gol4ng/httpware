@@ -97,7 +97,7 @@ func TestAuthentication_Custom_Error_Handler(t *testing.T) {
 			return req.Context(), errors.New("my_authenticate_error")
 		}),
 		middleware.WithErrorHandler(func(err error, writer http.ResponseWriter, req *http.Request) bool {
-			writer.Write([]byte("my_fake_response"))
+			_, _ = writer.Write([]byte("my_fake_response"))
 			return true
 		}),
 	)(handler).ServeHTTP(recorder, request)

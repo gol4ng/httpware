@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -9,17 +10,41 @@ import (
 )
 
 func TestFromHeader(t *testing.T) {
-	req := &http.Request{
-		Header: http.Header{
-			"Authorization": []string{"foo"},
+	tests := []struct {
+		request            *http.Request
+		expectedCredential string
+	}{
+		{
+			request:            nil,
+			expectedCredential: "",
+		},
+		{
+			request: &http.Request{Header: http.Header{
+				"Authorization": []string{"foo"},
+			},},
+			expectedCredential: "foo",
+		},
+		{
+			request: &http.Request{Header: http.Header{
+				"X-Authorization": []string{"foo"},
+			},},
+			expectedCredential: "foo",
+		},
+		{
+			request: &http.Request{Header: http.Header{
+				"Authorization": []string{"foo"},
+				"X-Authorization": []string{"bar"},
+			},},
+			expectedCredential: "foo",
 		},
 	}
 
-	credProvider := auth.FromHeader(req)
-	cred := string(credProvider())
-	assert.Equal(t, "foo", cred)
+	for i, tt := range tests {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			assert.Equal(t, auth.Credential(tt.expectedCredential), auth.FromHeader(tt.request)())
+		})
+	}
 }
-
 
 func TestAddHeader(t *testing.T) {
 	req := &http.Request{

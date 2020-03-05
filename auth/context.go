@@ -11,7 +11,14 @@ func CredentialToContext(ctx context.Context, credential Credential) context.Con
 }
 
 func CredentialFromContext(ctx context.Context) Credential {
-	credential, ok := ctx.Value(credentialContextKey).(Credential)
+	if ctx == nil {
+		return ""
+	}
+	value := ctx.Value(credentialContextKey)
+	if value == nil {
+		return ""
+	}
+	credential, ok := value.(Credential)
 	if !ok {
 		return ""
 	}

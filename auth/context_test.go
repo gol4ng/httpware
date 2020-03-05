@@ -1,17 +1,39 @@
-package auth_test
+package auth
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
-	"github.com/gol4ng/httpware/v2/auth"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCredentialFromContext(t *testing.T) {
-	ctx := context.Background()
-	newCtx := auth.CredentialToContext(ctx, "foo")
+func Test_Credential_Context(t *testing.T) {
+	tests := []struct {
+		context            context.Context
+		expectedCredential string
+	}{
+		{
+			context:            nil,
+			expectedCredential: "",
+		},
+		{
+			context:            context.Background(),
+			expectedCredential: "",
+		},
+		{
+			context:            context.WithValue(context.Background(), credentialContextKey, "not a credential"),
+			expectedCredential: "",
+		},
+		{
+			context:            CredentialToContext(context.Background(), Credential("my_value")),
+			expectedCredential: "my_value",
+		},
+	}
 
-	cred := auth.CredentialFromContext(newCtx)
-	assert.Equal(t, "foo", string(cred))
+	for i, tt := range tests {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			assert.Equal(t, Credential(tt.expectedCredential), CredentialFromContext(tt.context))
+		})
+	}
 }

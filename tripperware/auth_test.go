@@ -45,3 +45,18 @@ func TestAuthenticationForwarder(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthenticationForwarder_CustomCredentialForwarder(t *testing.T) {
+	roundTripperMock := &mocks.RoundTripper{}
+	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
+
+	roundTripperMock.On("RoundTrip", mock.AnythingOfType("*http.Request")).Return(nil, nil).Run(func(args mock.Arguments) {
+		innerReq := args.Get(0).(*http.Request)
+		assert.Equal(t, "my-custom-credential", innerReq.Header.Get("my-auth-header"))
+	})
+
+	_, _ = tripperware.AuthenticationForwarder(tripperware.WithCredentialForwarder(func(req *http.Request) {
+		req.Header.Set("my-auth-header", "my-custom-credential")
+	}))(roundTripperMock).RoundTrip(request)
+	roundTripperMock.AssertExpectations(t)
+}

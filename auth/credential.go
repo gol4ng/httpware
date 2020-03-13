@@ -1,6 +1,6 @@
 package auth
 
-type Credential string
+type Credential interface{}
 
 type CredentialProvider func() Credential
 

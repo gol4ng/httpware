@@ -8,12 +8,12 @@ import (
 	"github.com/gol4ng/httpware/v2/auth"
 )
 
-// Authentication middleware delegate the authentication process to a authFunc configured
-func Authentication(options ...AuthOption) httpware.Middleware {
+// Authentication middleware delegate the authentication process to a AuthenticateFunc configured
+func Authentication(authenticator auth.Authenticator, options ...AuthOption) httpware.Middleware {
 	config := NewAuthConfig(options...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
-			newCtx, err := config.authFunc(req)
+			newCtx, err := config.authenticateFunc(config.credentialFinder, authenticator, req)
 			if err != nil && config.errorHandler(err, writer, req) {
 				return
 			}
@@ -23,15 +23,17 @@ func Authentication(options ...AuthOption) httpware.Middleware {
 	}
 }
 
-type authFunc func(req *http.Request) (context.Context, error)
-type errorHandler func(err error, writer http.ResponseWriter, req *http.Request) bool
+type CredentialFinder func(r *http.Request) auth.Credential
+type AuthenticateFunc func(credentialFinder CredentialFinder, authenticator auth.Authenticator, req *http.Request) (context.Context, error)
+type ErrorHandler func(err error, writer http.ResponseWriter, req *http.Request) bool
 
 // AuthOption defines a interceptor middleware configuration option
 type AuthOption func(*AuthConfig)
 
 type AuthConfig struct {
-	authFunc     authFunc
-	errorHandler errorHandler
+	credentialFinder CredentialFinder
+	authenticateFunc AuthenticateFunc
+	errorHandler     ErrorHandler
 }
 
 func (o *AuthConfig) apply(options ...AuthOption) {
@@ -42,15 +44,28 @@ func (o *AuthConfig) apply(options ...AuthOption) {
 
 func NewAuthConfig(options ...AuthOption) *AuthConfig {
 	opts := &AuthConfig{
-		authFunc:     DefaultAuthFunc,
-		errorHandler: DefaultErrorHandler,
+		credentialFinder: DefaultCredentialFinder,
+		authenticateFunc: DefaultAuthFunc,
+		errorHandler:     DefaultErrorHandler,
 	}
 	opts.apply(options...)
 	return opts
 }
 
-func DefaultAuthFunc(req *http.Request) (context.Context, error) {
-	return auth.CredentialToContext(req.Context(), auth.FromHeader(req)()), nil
+func DefaultCredentialFinder(request *http.Request) auth.Credential {
+	return auth.FromHeader(request)()
+}
+
+func DefaultAuthFunc(credentialFinder CredentialFinder, authenticator auth.Authenticator, request *http.Request) (context.Context, error) {
+	credential := credentialFinder(request)
+	if authenticator != nil {
+		creds, err := authenticator.Authenticate(credential)
+		if err != nil {
+			return request.Context(), err
+		}
+		credential = creds
+	}
+	return auth.CredentialToContext(request.Context(), credential), nil
 }
 
 func DefaultErrorHandler(err error, writer http.ResponseWriter, _ *http.Request) bool {
@@ -58,15 +73,22 @@ func DefaultErrorHandler(err error, writer http.ResponseWriter, _ *http.Request)
 	return true
 }
 
-// WithAuthFunc will configure authFunc option
-func WithAuthFunc(authFunc authFunc) AuthOption {
+// WithCredentialFinder will configure AuthenticateFunc option
+func WithCredentialFinder(credentialFinder CredentialFinder) AuthOption {
 	return func(config *AuthConfig) {
-		config.authFunc = authFunc
+		config.credentialFinder = credentialFinder
 	}
 }
 
-// WithErrorHandler will configure errorHandler option
-func WithErrorHandler(errorHandler errorHandler) AuthOption {
+// WithAuthenticateFunc will configure AuthenticateFunc option
+func WithAuthenticateFunc(authenticateFunc AuthenticateFunc) AuthOption {
+	return func(config *AuthConfig) {
+		config.authenticateFunc = authenticateFunc
+	}
+}
+
+// WithErrorHandler will configure ErrorHandler option
+func WithErrorHandler(errorHandler ErrorHandler) AuthOption {
 	return func(config *AuthConfig) {
 		config.errorHandler = errorHandler
 	}

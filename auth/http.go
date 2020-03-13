@@ -25,12 +25,13 @@ func FromHeader(request *http.Request) CredentialProvider {
 }
 
 func AddHeader(request *http.Request) CredentialSetter {
-	return func(credential Credential)  {
+	return func(credential Credential) {
 		if request == nil {
 			return
 		}
-
-		request.Header.Set(AuthorizationHeader, string(credential))
-		request.Header.Set(XAuthorizationHeader, string(credential))
+		if creds, ok := credential.(string); ok {
+			request.Header.Set(AuthorizationHeader, creds)
+			request.Header.Set(XAuthorizationHeader, creds)
+		}
 	}
 }

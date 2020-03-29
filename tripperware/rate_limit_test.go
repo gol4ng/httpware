@@ -50,23 +50,6 @@ func TestRateLimit(t *testing.T) {
 	assert.Equal(t, int64(30), resp.ContentLength)
 }
 
-func TestWithErrorCallback(t *testing.T) {
-	rateLimiterMock := &mocks.RateLimiter{}
-	rateLimiterMock.On("Start").Return()
-	rateLimiterMock.On("Inc").Return()
-	rateLimiterMock.On("IsLimitReached").Return(true)
-
-	tr := tripperware.RateLimit(rateLimiterMock, tripperware.WithErrorCallback(func(err error, req *http.Request) error {
-			return fmt.Errorf("error from callback: %w", err)
-		}),
-	)
-
-	roundTripperMock := &mocks.RoundTripper{}
-	_, err := tr(roundTripperMock).RoundTrip(nil)
-	assert.NotNil(t, err)
-	assert.Equal(t, "error from callback: request limit reached", err.Error())
-}
-
 // =====================================================================================================================
 // ========================================= EXAMPLES ==================================================================
 // =====================================================================================================================

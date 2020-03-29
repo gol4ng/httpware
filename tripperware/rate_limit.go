@@ -37,14 +37,11 @@ func RateLimit(rateLimiter rate_limit.RateLimiter, options ...RateLimitOption) h
 		setter(args)
 	}
 
-	rateLimiter.Start()
 	return func(next http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
 			if rateLimiter.IsLimitReached() {
 				return nil, args.errorCallback(fmt.Errorf(RequestLimitReachedErr), req)
 			}
-
-			rateLimiter.Inc()
 			return next.RoundTrip(req)
 		})
 	}

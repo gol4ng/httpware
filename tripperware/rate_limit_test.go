@@ -29,13 +29,10 @@ func TestRateLimit(t *testing.T) {
 	rateLimiterMock.On("Start")
 
 	i := 0
-	rateLimiterMock.On("Inc").Run(func(args mock.Arguments) {
-		i++
-	})
-
 	call := rateLimiterMock.On("IsLimitReached")
 	call.Run(func(args mock.Arguments) {
 		call.Return(i == 1)
+		i++
 	})
 
 	tr := tripperware.RateLimit(rateLimiterMock)
@@ -77,7 +74,7 @@ func TestWithErrorCallback(t *testing.T) {
 func ExampleRateLimit() {
 	port := ":9003"
 	client := http.Client{
-		Transport: tripperware.RateLimit(rate_limit.NewLeakyBucket(1*time.Second, 1)),
+		Transport: tripperware.RateLimit(rate_limit.NewTimeRateLimiter(1*time.Second, 1)),
 	}
 
 	// create a server in order to show it work

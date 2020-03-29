@@ -15,11 +15,12 @@ type LeakyBucket struct {
 }
 
 func (t *LeakyBucket) IsLimitReached() bool {
-	return atomic.LoadUint64(&t.count) >= t.callLimit
-}
+	if atomic.LoadUint64(&t.count) >= t.callLimit {
+		return true
+	}
 
-func (t *LeakyBucket) Inc() {
 	atomic.AddUint64(&t.count, 1)
+	return false
 }
 
 func (t *LeakyBucket) Start() {

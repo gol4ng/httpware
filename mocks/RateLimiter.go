@@ -9,11 +9,6 @@ type RateLimiter struct {
 	mock.Mock
 }
 
-// Inc provides a mock function with given fields:
-func (_m *RateLimiter) Inc() {
-	_m.Called()
-}
-
 // IsLimitReached provides a mock function with given fields:
 func (_m *RateLimiter) IsLimitReached() bool {
 	ret := _m.Called()
@@ -26,14 +21,4 @@ func (_m *RateLimiter) IsLimitReached() bool {
 	}
 
 	return r0
-}
-
-// Start provides a mock function with given fields:
-func (_m *RateLimiter) Start() {
-	_m.Called()
-}
-
-// Stop provides a mock function with given fields:
-func (_m *RateLimiter) Stop() {
-	_m.Called()
 }

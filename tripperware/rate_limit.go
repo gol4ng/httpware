@@ -11,7 +11,6 @@ import (
 const RequestLimitReachedErr = "request limit reached"
 
 type RateLimitOptions struct {
-	limitRetry int
 	errorCallback func(err error, req *http.Request) error
 }
 

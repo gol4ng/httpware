@@ -40,3 +40,18 @@ func TestLeakyBucket_StartStop(t *testing.T) {
 	assert.Equal(t, false, rl.IsLimitReached())
 	rl.Stop()
 }
+
+func TestLeakyBucket_Race(t *testing.T) {
+	rl := rate_limit.NewLeakyBucket(1*time.Millisecond, 1)
+	for i := 0; i <= 1000; i++ {
+		go func() {
+			rl.Inc()
+		}()
+	}
+
+	for i := 0; i <= 1000; i++ {
+		go func() {
+			rl.IsLimitReached()
+		}()
+	}
+}

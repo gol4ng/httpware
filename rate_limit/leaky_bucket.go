@@ -1,33 +1,25 @@
 package rate_limit
 
 import (
-	"sync"
+	"sync/atomic"
 	"time"
 )
 
 type LeakyBucket struct {
-	mux sync.Mutex
-
 	timeBucket time.Duration
 	ticker *time.Ticker
 	done chan bool
 	isStart bool
-	callLimit int
-	count int
+	callLimit uint64
+	count uint64
 }
 
 func (t *LeakyBucket) IsLimitReached() bool {
-	t.mux.Lock()
-	defer t.mux.Unlock()
-
-	return t.count >= t.callLimit
+	return atomic.LoadUint64(&t.count) >= t.callLimit
 }
 
 func (t *LeakyBucket) Inc() {
-	t.mux.Lock()
-	defer t.mux.Unlock()
-
-	t.count++
+	atomic.AddUint64(&t.count, 1)
 }
 
 func (t *LeakyBucket) Start() {
@@ -43,9 +35,7 @@ func (t *LeakyBucket) Start() {
 			case <-t.done:
 				return
 			case <-t.ticker.C:
-				t.mux.Lock()
-				t.count = 0
-				t.mux.Unlock()
+				atomic.StoreUint64(&t.count, 0)
 			}
 		}
 	}()
@@ -61,6 +51,6 @@ func NewLeakyBucket(timeBucket time.Duration, callLimit int) *LeakyBucket {
 	return &LeakyBucket{
 		timeBucket: timeBucket,
 		done: make(chan bool),
-		callLimit: callLimit,
+		callLimit: uint64(callLimit),
 	}
 }

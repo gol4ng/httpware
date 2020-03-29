@@ -3,7 +3,6 @@ package tripperware
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gol4ng/httpware/v2"
 	"github.com/gol4ng/httpware/v2/rate_limit"
@@ -12,8 +11,6 @@ import (
 const RequestLimitReachedErr = "request limit reached"
 
 type RateLimitOptions struct {
-	retry bool
-	sleepDuration time.Duration
 	limitRetry int
 	errorCallback func(err error, req *http.Request) error
 }

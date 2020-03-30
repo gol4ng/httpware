@@ -13,6 +13,6 @@ func TestTimeRateLimiter_IsLimitReached(t *testing.T) {
 	assert.Equal(t, false, rl.IsLimitReached())
 	assert.Equal(t, true, rl.IsLimitReached())
 
-	time.Sleep(2*time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	assert.Equal(t, false, rl.IsLimitReached())
 }

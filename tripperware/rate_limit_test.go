@@ -78,7 +78,7 @@ func ExampleRateLimit() {
 	_, err = client.Get("http://localhost" + port + "/")
 	fmt.Println(err)
 
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 	_, err = client.Get("http://localhost" + port + "/")
 	fmt.Println(err)
 	// Output:

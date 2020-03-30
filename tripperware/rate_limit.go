@@ -1,7 +1,7 @@
 package tripperware
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/gol4ng/httpware/v2"
@@ -14,7 +14,7 @@ func RateLimit(rateLimiter rate_limit.RateLimiter, options ...rate_limit.Option)
 	return func(next http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
 			if rateLimiter.IsLimitReached() {
-				return nil, config.ErrorCallback(fmt.Errorf(rate_limit.RequestLimitReachedErr), req)
+				return nil, config.ErrorCallback(errors.New(rate_limit.RequestLimitReachedErr), req)
 			}
 			return next.RoundTrip(req)
 		})

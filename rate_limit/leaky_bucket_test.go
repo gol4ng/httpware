@@ -17,7 +17,7 @@ func TestLeakyBucket_IsLimitReached(t *testing.T) {
 	assert.Equal(t, false, rl.IsLimitReached())
 	assert.Equal(t, true, rl.IsLimitReached())
 
-	time.Sleep(2*time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	assert.Equal(t, false, rl.IsLimitReached())
 }
 
@@ -28,13 +28,13 @@ func TestLeakyBucket_StartStop(t *testing.T) {
 
 	rl.IsLimitReached()
 	rl.IsLimitReached()
-	time.Sleep(2*time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	assert.Equal(t, true, rl.IsLimitReached())
 
 	rl.Start()
 	rl.IsLimitReached()
 	rl.IsLimitReached()
-	time.Sleep(2*time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	assert.Equal(t, false, rl.IsLimitReached())
 	rl.Stop()
 }
@@ -53,6 +53,6 @@ func TestTimeRate(t *testing.T) {
 	assert.Equal(t, true, l.Allow())
 	assert.Equal(t, false, l.Allow())
 
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 	assert.Equal(t, true, l.Allow())
 }

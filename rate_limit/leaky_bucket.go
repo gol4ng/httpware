@@ -7,11 +7,11 @@ import (
 
 type LeakyBucket struct {
 	timeBucket time.Duration
-	ticker *time.Ticker
-	done chan bool
-	isStart bool
-	callLimit uint64
-	count uint64
+	ticker     *time.Ticker
+	done       chan bool
+	isStart    bool
+	callLimit  uint64
+	count      uint64
 }
 
 func (t *LeakyBucket) IsLimitReached() bool {
@@ -51,7 +51,7 @@ func (t *LeakyBucket) Stop() {
 func NewLeakyBucket(timeBucket time.Duration, callLimit int) *LeakyBucket {
 	return &LeakyBucket{
 		timeBucket: timeBucket,
-		done: make(chan bool),
-		callLimit: uint64(callLimit),
+		done:       make(chan bool),
+		callLimit:  uint64(callLimit),
 	}
 }

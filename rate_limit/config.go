@@ -8,15 +8,6 @@ type Config struct {
 	ErrorCallback func(err error, req *http.Request) error
 }
 
-type Option func(*Config)
-
-
-func nopErrorCallback() func(err error, req *http.Request) error {
-	return func(err error, req *http.Request) error {
-		return err
-	}
-}
-
 func (c *Config) apply(options ...Option) *Config {
 	for _, option := range options {
 		option(c)
@@ -30,6 +21,14 @@ func GetConfig(options ...Option) *Config {
 	}
 	return config.apply(options...)
 }
+
+func nopErrorCallback() func(err error, req *http.Request) error {
+	return func(err error, req *http.Request) error {
+		return err
+	}
+}
+
+type Option func(*Config)
 
 func WithErrorCallback(callback func(err error, req *http.Request) error) Option {
 	return func(config *Config) {

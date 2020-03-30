@@ -32,7 +32,6 @@ func (t *LeakyBucket) Stop() {
 }
 
 func (t *LeakyBucket) start() {
-
 	go func() {
 		for {
 			select {

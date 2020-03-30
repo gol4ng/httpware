@@ -57,13 +57,17 @@ func TestRateLimit(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleRateLimit() {
+	rl := rate_limit.NewLeakyBucket(1*time.Second, 1)
+	defer rl.Stop()
+
 	port := ":9003"
 	client := http.Client{
-		Transport: tripperware.RateLimit(rate_limit.NewLeakyBucket(1*time.Second, 1)),
+		Transport: tripperware.RateLimit(rl),
 	}
 
 	// create a server in order to show it work
 	srv := http.NewServeMux()
+
 	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println("server receive request")
 	})

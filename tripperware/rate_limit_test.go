@@ -60,7 +60,7 @@ func ExampleRateLimit() {
 	rl := rate_limit.NewLeakyBucket(1*time.Second, 1)
 	defer rl.Stop()
 
-	port := ":9003"
+	port := ":9004"
 	client := http.Client{
 		Transport: tripperware.RateLimit(rl),
 	}
@@ -90,7 +90,7 @@ func ExampleRateLimit() {
 	// Output:
 	//server receive request
 	//<nil>
-	//Get http://localhost:9003/: request limit reached
+	//Get http://localhost:9004/: request limit reached
 	//server receive request
 	//<nil>
 }

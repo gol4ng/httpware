@@ -1,7 +1,9 @@
 package tripperware_test
 
 import (
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -60,37 +62,37 @@ func ExampleRateLimit() {
 	rl := rate_limit.NewLeakyBucket(1*time.Second, 1)
 	defer rl.Stop()
 
-	port := ":9004"
-	client := http.Client{
-		Transport: tripperware.RateLimit(rl),
+	client := http.Client{Transport: tripperware.RateLimit(rl)}
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		panic(err)
 	}
 
-	// create a server in order to show it work
+	addr := listener.Addr().String()
 	srv := http.NewServeMux()
-
 	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println("server receive request")
 	})
 
 	go func() {
-		if err := http.ListenAndServe(port, srv); err != nil {
+		if err := http.Serve(listener, srv); err != nil {
 			panic(err)
 		}
 	}()
 
-	_, err := client.Get("http://localhost" + port + "/")
+	_, err = client.Get("http://" + addr + "/")
 	fmt.Println(err)
 
-	_, err = client.Get("http://localhost" + port + "/")
-	fmt.Println(err)
+	_, err = client.Get("http://" + addr + "/")
+	fmt.Println(errors.Unwrap(err))
 
 	time.Sleep(2 * time.Second)
-	_, err = client.Get("http://localhost" + port + "/")
+	_, err = client.Get("http://" + addr + "/")
 	fmt.Println(err)
 	// Output:
 	//server receive request
 	//<nil>
-	//Get http://localhost:9004/: request limit reached
+	//request limit reached
 	//server receive request
 	//<nil>
 }

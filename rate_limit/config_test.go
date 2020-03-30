@@ -19,7 +19,7 @@ func TestNewConfig(t *testing.T) {
 
 func TestConfig_Options(t *testing.T) {
 	config := rate_limit.GetConfig(
-		rate_limit.WithErrorCallback(func(err error, req *http.Request) error {
+		rate_limit.WithErrorCallback(func(error, *http.Request) error {
 			return fmt.Errorf("error from callback")
 		}),
 	)

@@ -5,7 +5,7 @@ import (
 )
 
 type Config struct {
-	ErrorCallback func(err error, req *http.Request) error
+	ErrorCallback func(err error, request *http.Request) error
 }
 
 func (c *Config) apply(options ...Option) *Config {
@@ -22,15 +22,15 @@ func GetConfig(options ...Option) *Config {
 	return config.apply(options...)
 }
 
-func nopErrorCallback() func(err error, req *http.Request) error {
-	return func(err error, req *http.Request) error {
+func nopErrorCallback() func(error, *http.Request) error {
+	return func(err error, _ *http.Request) error {
 		return err
 	}
 }
 
 type Option func(*Config)
 
-func WithErrorCallback(callback func(err error, req *http.Request) error) Option {
+func WithErrorCallback(callback func(error, *http.Request) error) Option {
 	return func(config *Config) {
 		config.ErrorCallback = callback
 	}

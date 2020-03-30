@@ -16,40 +16,40 @@ import (
 
 func TestRateLimit(t *testing.T) {
 	roundTripperMock := &mocks.RoundTripper{}
-	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
+	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	resp := &http.Response{
 		Status:        "OK",
 		StatusCode:    http.StatusOK,
-		ContentLength: 30,
 	}
 
-	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
+	roundTripperMock.On("RoundTrip", request).Times(2).Return(resp, nil)
 
 	rateLimiterMock := &mocks.RateLimiter{}
 
 	i := 0
-	rateLimiterMock.On("Inc").Run(func(args mock.Arguments) {
+	rateLimiterMock.On("Inc").Run(func(mock.Arguments) {
 		i++
 	})
 
 	call := rateLimiterMock.On("IsLimitReached")
-	call.Run(func(args mock.Arguments) {
+	call.Run(func(mock.Arguments) {
 		call.Return(i == 1)
 	})
 
 	tr := tripperware.RateLimit(rateLimiterMock)
-	_, err := tr(roundTripperMock).RoundTrip(req)
+	_, err := tr(roundTripperMock).RoundTrip(request)
 	assert.Nil(t, err)
 
-	_, err = tr(roundTripperMock).RoundTrip(req)
-	assert.NotNil(t, err)
-	assert.Equal(t, "request limit reached", err.Error())
+	_, err = tr(roundTripperMock).RoundTrip(request)
+	assert.EqualError(t, err, "request limit reached")
 
 	i = 0
-	resp, err = tr(roundTripperMock).RoundTrip(req)
+	resp, err = tr(roundTripperMock).RoundTrip(request)
 	assert.Nil(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
-	assert.Equal(t, int64(30), resp.ContentLength)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	roundTripperMock.AssertExpectations(t)
+	rateLimiterMock.AssertExpectations(t)
 }
 
 // =====================================================================================================================

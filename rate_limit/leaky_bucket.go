@@ -8,16 +8,16 @@ import (
 type LeakyBucket struct {
 	mutex     sync.Mutex
 	ticker    *time.Ticker
-	done      chan bool
+	done      chan struct{}
 	callLimit uint32
 	count     uint32
 }
 
-func (t *LeakyBucket) IsLimitReached() (res bool) {
+func (t *LeakyBucket) IsLimitReached() bool {
 	t.mutex.Lock()
-	res = t.count >= t.callLimit
+	res := t.count >= t.callLimit
 	t.mutex.Unlock()
-	return
+	return res
 }
 
 func (t *LeakyBucket) Inc() {
@@ -27,7 +27,7 @@ func (t *LeakyBucket) Inc() {
 }
 
 func (t *LeakyBucket) Stop() {
-	t.done <- true
+	t.done <- struct{}{}
 	t.ticker.Stop()
 }
 
@@ -49,7 +49,7 @@ func (t *LeakyBucket) start() {
 func NewLeakyBucket(timeBucket time.Duration, callLimit int) *LeakyBucket {
 	t := &LeakyBucket{
 		ticker:    time.NewTicker(timeBucket),
-		done:      make(chan bool),
+		done:      make(chan struct{}),
 		callLimit: uint32(callLimit),
 	}
 

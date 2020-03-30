@@ -21,12 +21,3 @@ func TestLeakyBucket_IsLimitReached(t *testing.T) {
 	time.Sleep(2 * time.Millisecond)
 	assert.Equal(t, false, rl.IsLimitReached())
 }
-
-func TestLeakyBucket_Race(t *testing.T) {
-	rl := rate_limit.NewLeakyBucket(1 * time.Millisecond, 1)
-	for i := 0; i <= 1000; i++ {
-		go func() {
-			rl.IsLimitReached()
-		}()
-	}
-}

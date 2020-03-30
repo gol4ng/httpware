@@ -1,57 +1,60 @@
 package rate_limit
 
 import (
-	"sync/atomic"
+	"sync"
 	"time"
 )
 
 type LeakyBucket struct {
-	timeBucket time.Duration
-	ticker     *time.Ticker
-	done       chan bool
-	isStart    bool
-	callLimit  uint64
-	count      uint64
+	mutex     sync.Mutex
+	ticker    *time.Ticker
+	done      chan bool
+	callLimit uint32
+	count     uint32
 }
 
-func (t *LeakyBucket) IsLimitReached() bool {
-	if atomic.LoadUint64(&t.count) >= t.callLimit {
-		return true
-	}
-
-	atomic.AddUint64(&t.count, 1)
-	return false
+func (t *LeakyBucket) IsLimitReached() (res bool) {
+	t.mutex.Lock()
+	res = t.count >= t.callLimit
+	t.mutex.Unlock()
+	return
 }
 
-func (t *LeakyBucket) Start() {
-	if t.isStart {
-		return
-	}
+func (t *LeakyBucket) Inc() {
+	t.mutex.Lock()
+	t.count++
+	t.mutex.Unlock()
+}
 
-	t.ticker = time.NewTicker(t.timeBucket)
-	t.isStart = true
+func (t *LeakyBucket) Stop() {
+	t.done <- true
+	t.ticker.Stop()
+}
+
+func (t *LeakyBucket) start() {
+
 	go func() {
 		for {
 			select {
 			case <-t.done:
 				return
 			case <-t.ticker.C:
-				atomic.StoreUint64(&t.count, 0)
+				t.mutex.Lock()
+				t.count = 0
+				t.mutex.Unlock()
 			}
 		}
 	}()
 }
 
-func (t *LeakyBucket) Stop() {
-	t.done <- true
-	t.ticker.Stop()
-	t.isStart = false
-}
-
 func NewLeakyBucket(timeBucket time.Duration, callLimit int) *LeakyBucket {
-	return &LeakyBucket{
-		timeBucket: timeBucket,
-		done:       make(chan bool),
-		callLimit:  uint64(callLimit),
+	t := &LeakyBucket{
+		ticker:    time.NewTicker(timeBucket),
+		done:      make(chan bool),
+		callLimit: uint32(callLimit),
 	}
+
+	t.start()
+
+	return t
 }

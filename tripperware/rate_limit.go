@@ -16,6 +16,8 @@ func RateLimit(rateLimiter rate_limit.RateLimiter, options ...rate_limit.Option)
 			if rateLimiter.IsLimitReached() {
 				return nil, config.ErrorCallback(errors.New(rate_limit.RequestLimitReachedErr), req)
 			}
+
+			rateLimiter.Inc()
 			return next.RoundTrip(req)
 		})
 	}

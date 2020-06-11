@@ -109,6 +109,26 @@ func TestAuthentication(t *testing.T) {
 		innerContext = innerRequest.Context()
 	})
 
+	authMiddleware := middleware.Authentication(auth.AuthenticatorFunc(func(credential auth.Credential) (auth.Credential, error) {
+		return "my_allowed_credential", nil
+	}))
+
+	authMiddleware(handler).ServeHTTP(nil, request)
+	assert.True(t, handlerCalled)
+	assert.NotEqual(t, request.Context(), innerContext)
+	assert.Equal(t, "my_allowed_credential", auth.CredentialFromContext(innerContext))
+}
+
+func TestAuthenticationWithAuthenticateFunc(t *testing.T) {
+	var innerContext context.Context
+	request, _ := http.NewRequest(http.MethodGet, "http://fake-addr", nil)
+
+	handlerCalled := false
+	handler := http.HandlerFunc(func(_ http.ResponseWriter, innerRequest *http.Request) {
+		handlerCalled = true
+		innerContext = innerRequest.Context()
+	})
+
 	authMiddleware := middleware.Authentication(nil, middleware.WithAuthenticateFunc(func(_ middleware.CredentialFinder, _ auth.Authenticator, req *http.Request) (context.Context, error) {
 		return req.Context(), nil
 	}))
@@ -116,6 +136,59 @@ func TestAuthentication(t *testing.T) {
 	authMiddleware(handler).ServeHTTP(nil, request)
 	assert.True(t, handlerCalled)
 	assert.Equal(t, request.Context(), innerContext)
+	assert.Equal(t, nil, auth.CredentialFromContext(innerContext))
+}
+
+func TestAuthenticationWithCredentialFinder(t *testing.T) {
+	var innerContext context.Context
+	request, _ := http.NewRequest(http.MethodGet, "http://fake-addr", nil)
+
+	handlerCalled := false
+	handler := http.HandlerFunc(func(_ http.ResponseWriter, innerRequest *http.Request) {
+		handlerCalled = true
+		innerContext = innerRequest.Context()
+	})
+
+	authMiddleware := middleware.Authentication(
+		nil,
+		middleware.WithCredentialFinder(func(_ *http.Request) auth.Credential {
+			return "my_custom_credential"
+		}),
+	)
+
+	authMiddleware(handler).ServeHTTP(nil, request)
+	assert.True(t, handlerCalled)
+	assert.NotEqual(t, request.Context(), innerContext)
+	assert.Equal(t, "my_custom_credential", auth.CredentialFromContext(innerContext))
+}
+
+func TestAuthenticationWithSuccessMiddleware(t *testing.T) {
+	var innerContext context.Context
+	request, _ := http.NewRequest(http.MethodGet, "http://fake-addr", nil)
+
+	handlerCalled := false
+	handler := http.HandlerFunc(func(_ http.ResponseWriter, innerRequest *http.Request) {
+		handlerCalled = true
+		innerContext = innerRequest.Context()
+	})
+
+	authMiddleware := middleware.Authentication(
+		nil,
+		middleware.WithAuthenticateFunc(func(_ middleware.CredentialFinder, _ auth.Authenticator, req *http.Request) (context.Context, error) {
+			return req.Context(), nil
+		}),
+		middleware.WithSuccessMiddleware(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
+				assert.Nil(t, writer)
+				assert.Equal(t, request, req)
+				// we not call next handler for example
+			})
+		}),
+	)
+
+	authMiddleware(handler).ServeHTTP(nil, request)
+	assert.False(t, handlerCalled)
+	assert.NotEqual(t, request.Context(), innerContext)
 	assert.Equal(t, nil, auth.CredentialFromContext(innerContext))
 }
 

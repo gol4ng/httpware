@@ -11,17 +11,21 @@ const (
 
 func FromHeader(request *http.Request) CredentialProvider {
 	return func() Credential {
-		if request == nil {
-			return ""
-		}
-
-		tokenHeader := request.Header.Get(AuthorizationHeader)
-		if tokenHeader == "" {
-			tokenHeader = request.Header.Get(XAuthorizationHeader)
-		}
-
-		return Credential(tokenHeader)
+		return ExtractFromHeader(request)
 	}
+}
+
+func ExtractFromHeader(request *http.Request) Credential {
+	if request == nil {
+		return ""
+	}
+
+	tokenHeader := request.Header.Get(AuthorizationHeader)
+	if tokenHeader == "" {
+		tokenHeader = request.Header.Get(XAuthorizationHeader)
+	}
+
+	return tokenHeader
 }
 
 func AddHeader(request *http.Request) CredentialSetter {

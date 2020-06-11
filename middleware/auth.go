@@ -8,13 +8,16 @@ import (
 	"github.com/gol4ng/httpware/v2/auth"
 )
 
-// Authentication middleware delegate the authentication process to a AuthenticateFunc configured
+// Authentication middleware delegate the authentication process to the Authenticator
 func Authentication(authenticator auth.Authenticator, options ...AuthOption) httpware.Middleware {
 	config := NewAuthConfig(options...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
 			newCtx, err := config.authenticateFunc(config.credentialFinder, authenticator, req)
-			if err != nil && config.errorHandler(err, writer, req) {
+			if err == nil {
+				config.successMiddleware(next).ServeHTTP(writer, req.WithContext(newCtx))
+				return
+			} else if config.errorHandler(err, writer, req) {
 				return
 			}
 
@@ -31,9 +34,10 @@ type ErrorHandler func(err error, writer http.ResponseWriter, req *http.Request)
 type AuthOption func(*AuthConfig)
 
 type AuthConfig struct {
-	credentialFinder CredentialFinder
-	authenticateFunc AuthenticateFunc
-	errorHandler     ErrorHandler
+	credentialFinder  CredentialFinder
+	authenticateFunc  AuthenticateFunc
+	errorHandler      ErrorHandler
+	successMiddleware httpware.Middleware
 }
 
 func (o *AuthConfig) apply(options ...AuthOption) {
@@ -47,6 +51,7 @@ func NewAuthConfig(options ...AuthOption) *AuthConfig {
 		credentialFinder: DefaultCredentialFinder,
 		authenticateFunc: DefaultAuthFunc,
 		errorHandler:     DefaultErrorHandler,
+		successMiddleware: httpware.NopMiddleware,
 	}
 	opts.apply(options...)
 	return opts
@@ -91,5 +96,12 @@ func WithAuthenticateFunc(authenticateFunc AuthenticateFunc) AuthOption {
 func WithErrorHandler(errorHandler ErrorHandler) AuthOption {
 	return func(config *AuthConfig) {
 		config.errorHandler = errorHandler
+	}
+}
+
+// WithSuccessMiddleware will configure successMiddleware option
+func WithSuccessMiddleware(middleware httpware.Middleware) AuthOption {
+	return func(config *AuthConfig) {
+		config.successMiddleware = middleware
 	}
 }

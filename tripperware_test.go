@@ -60,18 +60,13 @@ func TestTripperware_RoundTrip(t *testing.T) {
 
 func TestTripperware_DecorateClient(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://localhost/", nil)
-	resp := &http.Response{}
-
-	roundTripperMock := &mocks.RoundTripper{}
-	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
+	resp := &http.Response{Status: "My_response"}
 
 	tripperware := httpware.Tripperware(func(tripper http.RoundTripper) http.RoundTripper {
 		assert.Equal(t, http.DefaultTransport, tripper)
-		return httpware.RoundTripFunc(func(r *http.Request) (*http.Response, error) {
-			assert.Equal(t, req, r)
-			// we already check that tripper == http.DefaultTransport
-			// so we can replace the call with the mocked one
-			return roundTripperMock.RoundTrip(r)
+		return httpware.RoundTripFunc(func(innerRequest *http.Request) (*http.Response, error) {
+			assert.Equal(t, req, innerRequest)
+			return resp, nil
 		})
 	})
 

@@ -288,4 +288,5 @@ func TestAuthentication_Unauthorize(t *testing.T) {
 	assert.Equal(t, nil, auth.CredentialFromContext(innerContext))
 	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
 	assert.Equal(t, "my_authenticated_error\n", recorder.Body.String())
+	assert.Equal(t, "Basic realm=\"Restricted area\"", recorder.Header().Get("WWW-Authenticate"))
 }

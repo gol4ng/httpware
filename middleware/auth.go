@@ -74,6 +74,7 @@ func DefaultAuthFunc(credentialFinder CredentialFinder, authenticator auth.Authe
 }
 
 func DefaultErrorHandler(err error, writer http.ResponseWriter, _ *http.Request) bool {
+	writer.Header().Add("WWW-Authenticate", "Basic realm=\"Restricted area\"")
 	http.Error(writer, err.Error(), http.StatusUnauthorized)
 	return true
 }

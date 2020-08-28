@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/gol4ng/httpware/v2"
+	"github.com/gol4ng/httpware/v3"
 )
 
 // Enable middleware is used to conditionnaly add a middleware to a MiddlewareStack

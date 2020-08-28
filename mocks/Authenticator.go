@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	"github.com/gol4ng/httpware/v2/auth"
+	"github.com/gol4ng/httpware/v3/auth"
 	"github.com/stretchr/testify/mock"
 )
 

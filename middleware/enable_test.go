@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gol4ng/httpware/v2"
-	"github.com/gol4ng/httpware/v2/middleware"
+	"github.com/gol4ng/httpware/v3"
+	"github.com/gol4ng/httpware/v3/middleware"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/gol4ng/httpware/v2/correlation_id"
-	"github.com/gol4ng/httpware/v2/mocks"
-	"github.com/gol4ng/httpware/v2/tripperware"
+	"github.com/gol4ng/httpware/v3/correlation_id"
+	"github.com/gol4ng/httpware/v3/mocks"
+	"github.com/gol4ng/httpware/v3/tripperware"
 )
 
 func TestMain(m *testing.M) {

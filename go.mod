@@ -1,4 +1,4 @@
-module github.com/gol4ng/httpware/v2
+module github.com/gol4ng/httpware/v3
 
 go 1.10
 

@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gol4ng/httpware/v2"
-	"github.com/gol4ng/httpware/v2/skip"
+	"github.com/gol4ng/httpware/v3"
+	"github.com/gol4ng/httpware/v3/skip"
 )
 
 // Skip middleware is used to conditionnaly activate a middleware in function of request

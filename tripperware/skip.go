@@ -3,8 +3,8 @@ package tripperware
 import (
 	"net/http"
 
-	"github.com/gol4ng/httpware/v2"
-	"github.com/gol4ng/httpware/v2/skip"
+	"github.com/gol4ng/httpware/v3"
+	"github.com/gol4ng/httpware/v3/skip"
 )
 
 // Skip tripperware is used to conditionnaly activate a tripperware in function of request

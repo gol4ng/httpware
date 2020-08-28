@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gol4ng/httpware/v2"
-	"github.com/gol4ng/httpware/v2/correlation_id"
+	"github.com/gol4ng/httpware/v3"
+	"github.com/gol4ng/httpware/v3/correlation_id"
 )
 
 // CorrelationId tripperware gets request id header if provided or generates a request id

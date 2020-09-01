@@ -15,6 +15,8 @@ Package httpware is a collection of middleware (net/http.Handler wrapper) and tr
 
 | Name   | Middleware | Tripperware|
 | ------ | :--------: | :--------: |
+|**Authentication**|X||
+|**AuthenticationForwarder**||X|
 |**CorrelationId**|X|X|
 |**Metrics**|X|X|
 |**Interceptor**|X|X|

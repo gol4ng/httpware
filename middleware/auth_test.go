@@ -14,10 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func credentialFinderMock(_ *http.Request) auth.Credential {
-	return "my_credential"
-}
-
 func TestDefaultCredentialFinder(t *testing.T) {
 	tests := []struct {
 		authorizationHeader  string
@@ -56,39 +52,6 @@ func TestDefaultCredentialFinder(t *testing.T) {
 	}
 }
 
-func TestDefaultAuthFunc(t *testing.T) {
-	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
-
-	nexCtx, err := middleware.DefaultAuthFunc(credentialFinderMock, nil, request)
-	assert.NoError(t, err)
-	assert.Equal(t, auth.Credential("my_credential"), auth.CredentialFromContext(nexCtx))
-}
-
-func TestDefaultAuthFunc_WithAuthenticator(t *testing.T) {
-	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
-
-	authenticator := &mocks.Authenticator{}
-	authenticator.On("Authenticate", "my_credential").Return("my_authenticate_credential", nil)
-
-	nexCtx, err := middleware.DefaultAuthFunc(credentialFinderMock, authenticator, request)
-	assert.NoError(t, err)
-	assert.Equal(t, auth.Credential("my_authenticate_credential"), auth.CredentialFromContext(nexCtx))
-	authenticator.AssertExpectations(t)
-}
-
-func TestDefaultAuthFunc_WithAuthenticator_Error(t *testing.T) {
-	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
-
-	err := errors.New("my_authenticate_error")
-	authenticator := &mocks.Authenticator{}
-	authenticator.On("Authenticate", "my_credential").Return("my_authenticate_credential", err)
-
-	nexCtx, err := middleware.DefaultAuthFunc(credentialFinderMock, authenticator, request)
-	assert.EqualError(t, err, "my_authenticate_error")
-	assert.Equal(t, nil, auth.CredentialFromContext(nexCtx))
-	authenticator.AssertExpectations(t)
-}
-
 func TestDefaultErrorHandler(t *testing.T) {
 	request, _ := http.NewRequest("", "", nil)
 	response := httptest.NewRecorder()
@@ -109,9 +72,10 @@ func TestAuthentication(t *testing.T) {
 		innerContext = innerRequest.Context()
 	})
 
-	authMiddleware := middleware.Authentication(auth.AuthenticatorFunc(func(credential auth.Credential) (auth.Credential, error) {
-		return "my_allowed_credential", nil
-	}))
+	authMiddleware := middleware.Authentication(func(request *http.Request) (*http.Request, error) {
+		newCtx := auth.CredentialToContext(request.Context(), "my_allowed_credential")
+		return request.WithContext(newCtx), nil
+	})
 
 	authMiddleware(handler).ServeHTTP(nil, request)
 	assert.True(t, handlerCalled)
@@ -119,27 +83,7 @@ func TestAuthentication(t *testing.T) {
 	assert.Equal(t, "my_allowed_credential", auth.CredentialFromContext(innerContext))
 }
 
-func TestAuthenticationWithAuthenticateFunc(t *testing.T) {
-	var innerContext context.Context
-	request, _ := http.NewRequest(http.MethodGet, "http://fake-addr", nil)
-
-	handlerCalled := false
-	handler := http.HandlerFunc(func(_ http.ResponseWriter, innerRequest *http.Request) {
-		handlerCalled = true
-		innerContext = innerRequest.Context()
-	})
-
-	authMiddleware := middleware.Authentication(nil, middleware.WithAuthenticateFunc(func(_ middleware.CredentialFinder, _ auth.Authenticator, req *http.Request) (context.Context, error) {
-		return req.Context(), nil
-	}))
-
-	authMiddleware(handler).ServeHTTP(nil, request)
-	assert.True(t, handlerCalled)
-	assert.Equal(t, request.Context(), innerContext)
-	assert.Equal(t, nil, auth.CredentialFromContext(innerContext))
-}
-
-func TestAuthenticationWithCredentialFinder(t *testing.T) {
+func TestAuthentication_WithSuccessMiddleware(t *testing.T) {
 	var innerContext context.Context
 	request, _ := http.NewRequest(http.MethodGet, "http://fake-addr", nil)
 
@@ -150,33 +94,9 @@ func TestAuthenticationWithCredentialFinder(t *testing.T) {
 	})
 
 	authMiddleware := middleware.Authentication(
-		nil,
-		middleware.WithCredentialFinder(func(_ *http.Request) auth.Credential {
-			return "my_custom_credential"
-		}),
-	)
-
-	authMiddleware(handler).ServeHTTP(nil, request)
-	assert.True(t, handlerCalled)
-	assert.NotEqual(t, request.Context(), innerContext)
-	assert.Equal(t, "my_custom_credential", auth.CredentialFromContext(innerContext))
-}
-
-func TestAuthenticationWithSuccessMiddleware(t *testing.T) {
-	var innerContext context.Context
-	request, _ := http.NewRequest(http.MethodGet, "http://fake-addr", nil)
-
-	handlerCalled := false
-	handler := http.HandlerFunc(func(_ http.ResponseWriter, innerRequest *http.Request) {
-		handlerCalled = true
-		innerContext = innerRequest.Context()
-	})
-
-	authMiddleware := middleware.Authentication(
-		nil,
-		middleware.WithAuthenticateFunc(func(_ middleware.CredentialFinder, _ auth.Authenticator, req *http.Request) (context.Context, error) {
-			return req.Context(), nil
-		}),
+		func(req *http.Request) (*http.Request, error) {
+			return req, nil
+		},
 		middleware.WithSuccessMiddleware(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
 				assert.Nil(t, writer)
@@ -192,7 +112,7 @@ func TestAuthenticationWithSuccessMiddleware(t *testing.T) {
 	assert.Equal(t, nil, auth.CredentialFromContext(innerContext))
 }
 
-func TestAuthentication_Error(t *testing.T) {
+func TestAuthentication_WithErrorHandler(t *testing.T) {
 	var innerErr error
 	request, _ := http.NewRequest(http.MethodGet, "http://fake-addr", nil)
 
@@ -202,10 +122,9 @@ func TestAuthentication_Error(t *testing.T) {
 	})
 
 	authMiddleware := middleware.Authentication(
-		nil,
-		middleware.WithAuthenticateFunc(func(_ middleware.CredentialFinder, _ auth.Authenticator, req *http.Request) (context.Context, error) {
-			return req.Context(), errors.New("my_authenticate_error")
-		}),
+		func(req *http.Request) (*http.Request, error) {
+			return req, errors.New("my_authenticate_error")
+		},
 		middleware.WithErrorHandler(func(err error, _ http.ResponseWriter, _ *http.Request) bool {
 			innerErr = err
 			return true
@@ -215,56 +134,6 @@ func TestAuthentication_Error(t *testing.T) {
 	authMiddleware(handler).ServeHTTP(nil, request)
 	assert.False(t, handlerCalled)
 	assert.EqualError(t, innerErr, "my_authenticate_error")
-}
-
-func TestAuthentication_hydrate_header(t *testing.T) {
-	tests := []struct {
-		authorizationHeader  string
-		xAuthorizationHeader string
-		expectedCredential   string
-	}{
-		{
-			authorizationHeader:  "",
-			xAuthorizationHeader: "",
-			expectedCredential:   "",
-		},
-		{
-			authorizationHeader:  "Foo",
-			xAuthorizationHeader: "",
-			expectedCredential:   "Foo",
-		},
-		{
-			authorizationHeader:  "",
-			xAuthorizationHeader: "Foo",
-			expectedCredential:   "Foo",
-		},
-		{
-			authorizationHeader:  "Foo",
-			xAuthorizationHeader: "Bar",
-			expectedCredential:   "Foo",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%s%s", tt.authorizationHeader, tt.xAuthorizationHeader), func(t *testing.T) {
-			var innerContext context.Context
-			request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
-			request.Header.Set(auth.AuthorizationHeader, tt.authorizationHeader)
-			request.Header.Set(auth.XAuthorizationHeader, tt.xAuthorizationHeader)
-
-			handlerCalled := false
-			handler := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				handlerCalled = true
-				innerContext = r.Context()
-			})
-
-			authMiddleware := middleware.Authentication(nil)
-
-			authMiddleware(handler).ServeHTTP(nil, request)
-
-			assert.True(t, handlerCalled)
-			assert.Equal(t, auth.Credential(tt.expectedCredential), auth.CredentialFromContext(innerContext))
-		})
-	}
 }
 
 func TestAuthentication_Unauthorize(t *testing.T) {
@@ -278,9 +147,9 @@ func TestAuthentication_Unauthorize(t *testing.T) {
 		innerContext = r.Context()
 	})
 
-	authenticator := &mocks.Authenticator{}
-	authenticator.On("Authenticate", "").Return("my_authenticated_credential", errors.New("my_authenticated_error"))
-	authMiddleware := middleware.Authentication(authenticator)
+	authMiddleware := middleware.Authentication(func(request *http.Request) (*http.Request, error) {
+		return request, errors.New("my_authenticated_error")
+	})
 
 	authMiddleware(handler).ServeHTTP(recorder, request)
 
@@ -288,4 +157,57 @@ func TestAuthentication_Unauthorize(t *testing.T) {
 	assert.Equal(t, nil, auth.CredentialFromContext(innerContext))
 	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
 	assert.Equal(t, "my_authenticated_error\n", recorder.Body.String())
+}
+
+func TestNewAuthenticateFunc(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
+	request.Header.Set("Authorization", "my_credential")
+
+	authenticator := &mocks.Authenticator{}
+	authenticator.On("Authenticate", "my_credential").Return("my_authenticate_credential", nil)
+
+	authenticateFunc := middleware.NewAuthenticateFunc(authenticator)
+
+	newRequest, err := authenticateFunc(request)
+	assert.NoError(t, err)
+	assert.Equal(t, "my_authenticate_credential", auth.CredentialFromContext(newRequest.Context()))
+
+	authenticator.AssertExpectations(t)
+}
+
+func TestNewAuthenticateFunc_WithCredentialFinder(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
+
+	authenticator := &mocks.Authenticator{}
+	authenticator.On("Authenticate", "my_credential_finder_value").Return("my_authenticate_credential", nil)
+
+	authenticateFunc := middleware.NewAuthenticateFunc(
+		authenticator,
+		middleware.WithCredentialFinder(func(r *http.Request) auth.Credential {
+			return "my_credential_finder_value"
+		}),
+	)
+
+	newRequest, err := authenticateFunc(request)
+	assert.NoError(t, err)
+	assert.Equal(t, "my_authenticate_credential", auth.CredentialFromContext(newRequest.Context()))
+
+	authenticator.AssertExpectations(t)
+}
+
+func TestNewAuthenticateFunc_Error(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
+	request.Header.Set("Authorization", "my_credential")
+
+	err := errors.New("my_authenticate_error")
+	authenticator := &mocks.Authenticator{}
+	authenticator.On("Authenticate", "my_credential").Return("my_authenticate_credential", err)
+
+	authenticateFunc := middleware.NewAuthenticateFunc(authenticator)
+
+	newRequest, err := authenticateFunc(request)
+	assert.EqualError(t, err, "my_authenticate_error")
+	assert.Nil(t, auth.CredentialFromContext(newRequest.Context()))
+
+	authenticator.AssertExpectations(t)
 }

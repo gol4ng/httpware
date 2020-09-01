@@ -34,9 +34,14 @@ func TestRateLimit(t *testing.T) {
 		i++
 	})
 
-	call := rateLimiterMock.On("IsLimitReached", mock.AnythingOfType("*http.Request"))
+	call := rateLimiterMock.On("Allow", mock.AnythingOfType("*http.Request"))
 	call.Run(func(mock.Arguments) {
-		call.Return(i == 1)
+		if i == 1 {
+			call.Return(errors.New(rate_limit.RequestLimitReachedErr))
+			return
+		}
+
+		call.Return(nil)
 	})
 
 	tr := tripperware.RateLimit(rateLimiterMock)
@@ -53,6 +58,30 @@ func TestRateLimit(t *testing.T) {
 
 	roundTripperMock.AssertExpectations(t)
 	rateLimiterMock.AssertExpectations(t)
+}
+
+func TestNewConfig(t *testing.T) {
+	res, err := tripperware.NewRateLimitConfig().ErrorCallback(nil, fmt.Errorf("default error"))
+	assert.Nil(t, res)
+	assert.NotNil(t, err)
+	assert.Equal(
+		t,
+		"default error",
+		err.Error(),
+	)
+}
+
+func TestConfig_Options(t *testing.T) {
+	config := tripperware.NewRateLimitConfig(
+		tripperware.WithRateLimitErrorCallback(func(*http.Request, error) (*http.Response, error) {
+			return nil, fmt.Errorf("error from callback")
+		}),
+	)
+
+	res, err := config.ErrorCallback(nil, nil)
+	assert.Nil(t, res)
+	assert.NotNil(t, err)
+	assert.Equal(t, "error from callback",err.Error())
 }
 
 // =====================================================================================================================

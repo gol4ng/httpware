@@ -8,16 +8,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTokenBucket_IsLimitReached(t *testing.T) {
+func TestTokenBucket_Allow(t *testing.T) {
 	rl := rate_limit.NewTokenBucket(1 * time.Millisecond, 1)
 	defer rl.Stop()
 
-	assert.Equal(t, false, rl.IsLimitReached(nil))
+	assert.NoError(t, rl.Allow(nil))
 	rl.Inc(nil)
 
-	assert.Equal(t, true, rl.IsLimitReached(nil))
+	assert.EqualError(t, rl.Allow(nil), "request limit reached")
 	rl.Inc(nil)
 
 	time.Sleep(2 * time.Millisecond)
-	assert.Equal(t, false, rl.IsLimitReached(nil))
+	assert.NoError(t, rl.Allow(nil))
 }

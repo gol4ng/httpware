@@ -5,7 +5,7 @@ import (
 )
 
 type RateLimiter interface {
-	IsLimitReached(req *http.Request) bool
+	Allow(req *http.Request) error
 	Inc(req *http.Request)
 	Dec(req *http.Request)
 }

@@ -10,6 +10,20 @@ type RateLimiter struct {
 	mock.Mock
 }
 
+// Allow provides a mock function with given fields: req
+func (_m *RateLimiter) Allow(req *http.Request) error {
+	ret := _m.Called(req)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*http.Request) error); ok {
+		r0 = rf(req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Dec provides a mock function with given fields: req
 func (_m *RateLimiter) Dec(req *http.Request) {
 	_m.Called(req)
@@ -18,18 +32,4 @@ func (_m *RateLimiter) Dec(req *http.Request) {
 // Inc provides a mock function with given fields: req
 func (_m *RateLimiter) Inc(req *http.Request) {
 	_m.Called(req)
-}
-
-// IsLimitReached provides a mock function with given fields: req
-func (_m *RateLimiter) IsLimitReached(req *http.Request) bool {
-	ret := _m.Called(req)
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(*http.Request) bool); ok {
-		r0 = rf(req)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
 }

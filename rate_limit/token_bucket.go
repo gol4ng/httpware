@@ -1,6 +1,7 @@
 package rate_limit
 
 import (
+	"errors"
 	"net/http"
 	"sync"
 	"time"
@@ -14,11 +15,15 @@ type TokenBucket struct {
 	count     uint32
 }
 
-func (t *TokenBucket) IsLimitReached(_ *http.Request) bool {
+func (t *TokenBucket) Allow(_ *http.Request) error {
 	t.mutex.Lock()
 	res := t.count >= t.callLimit
 	t.mutex.Unlock()
-	return res
+	if res {
+		return errors.New(RequestLimitReachedErr)
+	}
+
+	return nil
 }
 
 func (t *TokenBucket) Inc(_ *http.Request) {

@@ -1,6 +1,7 @@
 package middleware_test
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -17,7 +18,7 @@ import (
 
 func TestRateLimit(t *testing.T) {
 	rateLimiterMock := &mocks.RateLimiter{}
-	rateLimiterMock.On("IsLimitReached", mock.AnythingOfType("*http.Request")).Return(true)
+	rateLimiterMock.On("Allow", mock.AnythingOfType("*http.Request")).Return(errors.New("failed"))
 
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	responseWriter := &httptest.ResponseRecorder{}

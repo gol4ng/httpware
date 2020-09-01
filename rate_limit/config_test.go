@@ -10,19 +10,22 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
+	_, err := rate_limit.GetConfig().ErrorCallback(nil, fmt.Errorf("default error"))
+	assert.NotNil(t, err)
 	assert.Equal(
 		t,
 		"default error",
-		rate_limit.GetConfig().ErrorCallback(fmt.Errorf("default error"), nil).Error(),
+		err.Error(),
 	)
 }
 
 func TestConfig_Options(t *testing.T) {
 	config := rate_limit.GetConfig(
-		rate_limit.WithErrorCallback(func(error, *http.Request) error {
-			return fmt.Errorf("error from callback")
+		rate_limit.WithErrorCallback(func(*http.Request, error) (*http.Response, error) {
+			return nil, fmt.Errorf("error from callback")
 		}),
 	)
-
-	assert.Equal(t, "error from callback", config.ErrorCallback(nil, nil).Error())
+	_, err := config.ErrorCallback(nil, nil)
+	assert.NotNil(t, err)
+	assert.Equal(t, "error from callback",err.Error())
 }

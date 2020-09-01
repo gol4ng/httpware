@@ -1,6 +1,11 @@
 package rate_limit
 
+import (
+	"net/http"
+)
+
 type RateLimiter interface {
-	IsLimitReached() bool
-	Inc()
+	IsLimitReached(req *http.Request) bool
+	Inc(req *http.Request)
+	Dec(req *http.Request)
 }

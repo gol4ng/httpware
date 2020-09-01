@@ -27,13 +27,14 @@ func TestRateLimit(t *testing.T) {
 	roundTripperMock.On("RoundTrip", request).Times(2).Return(resp, nil)
 
 	rateLimiterMock := &mocks.RateLimiter{}
+	rateLimiterMock.On("Dec", mock.AnythingOfType("*http.Request")).Return()
 
 	i := 0
-	rateLimiterMock.On("Inc").Run(func(mock.Arguments) {
+	rateLimiterMock.On("Inc", mock.AnythingOfType("*http.Request")).Run(func(mock.Arguments) {
 		i++
 	})
 
-	call := rateLimiterMock.On("IsLimitReached")
+	call := rateLimiterMock.On("IsLimitReached", mock.AnythingOfType("*http.Request"))
 	call.Run(func(mock.Arguments) {
 		call.Return(i == 1)
 	})
@@ -59,7 +60,7 @@ func TestRateLimit(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleRateLimit() {
-	rl := rate_limit.NewLeakyBucket(1*time.Second, 1)
+	rl := rate_limit.NewTokenBucket(1*time.Second, 1)
 	defer rl.Stop()
 
 	client := http.Client{Transport: tripperware.RateLimit(rl)}

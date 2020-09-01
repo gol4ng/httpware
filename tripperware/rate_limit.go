@@ -13,11 +13,12 @@ func RateLimit(rateLimiter rate_limit.RateLimiter, options ...rate_limit.Option)
 
 	return func(next http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(request *http.Request) (*http.Response, error) {
-			if rateLimiter.IsLimitReached() {
-				return nil, config.ErrorCallback(errors.New(rate_limit.RequestLimitReachedErr), request)
+			if rateLimiter.IsLimitReached(request) {
+				return config.ErrorCallback(request, errors.New(rate_limit.RequestLimitReachedErr))
 			}
 
-			rateLimiter.Inc()
+			rateLimiter.Inc(request)
+			defer rateLimiter.Dec(request)
 			return next.RoundTrip(request)
 		})
 	}

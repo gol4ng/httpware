@@ -3,6 +3,7 @@ package middleware_test
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,7 +22,7 @@ func TestRateLimit(t *testing.T) {
 	rateLimiterMock.On("Allow", mock.AnythingOfType("*http.Request")).Return(errors.New("failed"))
 
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
-	responseWriter := &httptest.ResponseRecorder{}
+	responseWriter := httptest.NewRecorder()
 
 	executed := false
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +32,11 @@ func TestRateLimit(t *testing.T) {
 	middleware.RateLimit(rateLimiterMock)(handler).ServeHTTP(responseWriter, req)
 
 	assert.False(t, executed)
-	assert.Equal(t, http.StatusTooManyRequests, responseWriter.Code)
+	assert.Equal(t, http.StatusTooManyRequests, responseWriter.Result().StatusCode)
+
+	content, err := ioutil.ReadAll(responseWriter.Result().Body)
+	assert.NoError(t, err)
+	assert.Equal(t, "failed\n", string(content))
 
 	rateLimiterMock.AssertExpectations(t)
 }
@@ -41,14 +46,14 @@ func TestRateLimit(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleRateLimit() {
-	rl := rate_limit.NewTokenBucket(1*time.Second, 1)
-	defer rl.Stop()
+	limiter := rate_limit.NewTokenBucket(1*time.Second, 1)
+	defer limiter.Stop()
 
 	port := ":9105"
 	// we recommend to use MiddlewareStack to simplify managing all wanted middlewares
 	// caution middleware order matters
 	stack := httpware.MiddlewareStack(
-		middleware.RateLimit(rl),
+		middleware.RateLimit(limiter),
 	)
 
 	srv := http.NewServeMux()

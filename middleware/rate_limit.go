@@ -7,19 +7,19 @@ import (
 	"github.com/gol4ng/httpware/v2/rate_limit"
 )
 
-func RateLimit(rl rate_limit.RateLimiter, options ...RateLimitOption) httpware.Middleware {
+func RateLimit(limiter rate_limit.RateLimiter, options ...RateLimitOption) httpware.Middleware {
 	config := NewRateLimitConfig(options...)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
-			if err := rl.Allow(req); err != nil {
+			if err := limiter.Allow(req); err != nil {
 				if !config.ErrorCallback(err, writer, req) {
 					return
 				}
 			}
 
-			rl.Inc(req)
-			defer rl.Dec(req)
+			limiter.Inc(req)
+			defer limiter.Dec(req)
 			next.ServeHTTP(writer, req)
 		})
 	}

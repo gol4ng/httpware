@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gol4ng/httpware/v2/rate_limit"
+	"github.com/gol4ng/httpware/v3/rate_limit"
 	"github.com/stretchr/testify/assert"
 )
 

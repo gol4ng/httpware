@@ -3,8 +3,8 @@ package tripperware
 import (
 	"net/http"
 
-	"github.com/gol4ng/httpware/v2"
-	"github.com/gol4ng/httpware/v2/rate_limit"
+	"github.com/gol4ng/httpware/v3"
+	"github.com/gol4ng/httpware/v3/rate_limit"
 )
 
 func RateLimit(rateLimiter rate_limit.RateLimiter, options ...RateLimitOption) httpware.Tripperware {

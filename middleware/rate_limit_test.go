@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -46,32 +48,38 @@ func TestRateLimit(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleRateLimit() {
+	// Example Need a random ephemeral port (to have a free port)
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	limiter := rate_limit.NewTokenBucket(1*time.Second, 1)
 	defer limiter.Stop()
 
-	port := ":9105"
 	// we recommend to use MiddlewareStack to simplify managing all wanted middlewares
 	// caution middleware order matters
 	stack := httpware.MiddlewareStack(
 		middleware.RateLimit(limiter),
 	)
 
-	srv := http.NewServeMux()
-	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {})
+	srv := &http.Server{
+		Handler: stack.DecorateHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {}),
+	}
 	go func() {
-		if err := http.ListenAndServe(port, stack.DecorateHandler(srv)); err != nil {
+		if err := srv.Serve(ln); err != nil {
 			panic(err)
 		}
 	}()
 
-	resp, _ := http.Get("http://localhost" + port)
+	resp, _ := http.Get("http://" + ln.Addr().String())
 	fmt.Println(resp.StatusCode)
 
-	resp, _ = http.Get("http://localhost" + port)
+	resp, _ = http.Get("http://" + ln.Addr().String())
 	fmt.Println(resp.StatusCode)
 
 	time.Sleep(2 * time.Second)
-	resp, _ = http.Get("http://localhost" + port)
+	resp, _ = http.Get("http://" + ln.Addr().String())
 	fmt.Println(resp.StatusCode)
 	// Output:
 	//200

@@ -2,7 +2,9 @@ package middleware_test
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -44,7 +46,12 @@ func TestCorrelationId(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleCorrelationId() {
-	port := ":9103"
+	// Example Need a random ephemeral port (to have a free port)
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// we recommend to use MiddlewareStack to simplify managing all wanted middlewares
 	// caution middleware order matters
 	stack := httpware.MiddlewareStack(
@@ -56,14 +63,16 @@ func ExampleCorrelationId() {
 		),
 	)
 
-	srv := http.NewServeMux()
+	srv := &http.Server{
+		Handler: stack.DecorateHandler(http.NewServeMux()),
+	}
 	go func() {
-		if err := http.ListenAndServe(port, stack.DecorateHandler(srv)); err != nil {
+		if err := srv.Serve(ln); err != nil {
 			panic(err)
 		}
 	}()
 
-	resp, err := http.Get("http://localhost" + port)
+	resp, err := http.Get("http://"+ln.Addr().String())
 	if err != nil {
 		fmt.Println(err)
 	} else if resp != nil {

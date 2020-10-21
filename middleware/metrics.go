@@ -14,7 +14,10 @@ func Metrics(recorder metrics.Recorder, options ... metrics.Option) httpware.Mid
 	config := metrics.NewConfig(recorder, options...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
-			writerInterceptor := NewResponseWriterInterceptor(writer)
+			writerInterceptor, ok := writer.(*ResponseWriterInterceptor)
+			if !ok {
+				writerInterceptor = NewResponseWriterInterceptor(writer)
+			}
 			handlerName := config.IdentifierProvider(req)
 			if config.MeasureInflightRequests {
 				config.Recorder.AddInflightRequests(req.Context(), handlerName, 1)

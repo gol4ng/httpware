@@ -12,7 +12,10 @@ func Interceptor(options ...InterceptorOption) httpware.Middleware {
 	config := NewInterceptorConfig(options...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
-			writerInterceptor := NewResponseWriterInterceptor(writer)
+			writerInterceptor, ok := writer.(*ResponseWriterInterceptor)
+			if !ok {
+				writerInterceptor = NewResponseWriterInterceptor(writer)
+			}
 
 			req.Body = interceptor.NewCopyReadCloser(req.Body)
 			config.CallbackBefore(writerInterceptor, req)

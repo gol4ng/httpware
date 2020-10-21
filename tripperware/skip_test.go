@@ -2,6 +2,7 @@ package tripperware_test
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -63,7 +64,11 @@ func TestSkip(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleSkip() {
-	port := ":9002"
+	// Example Need a random ephemeral port (to have a free port)
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		panic(err)
+	}
 
 	dummyTripperware := func(next http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(request *http.Request) (*http.Response, error) {
@@ -79,20 +84,19 @@ func ExampleSkip() {
 		}, dummyTripperware),
 	}
 
-	// create a server in order to show it work
-	srv := http.NewServeMux()
-	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println("server receive request with request:", request.Header.Get("FakeHeader"))
-	})
-
+	srv := &http.Server{
+		Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			fmt.Println("server receive request with request:", request.Header.Get("FakeHeader"))
+		}),
+	}
 	go func() {
-		if err := http.ListenAndServe(port, srv); err != nil {
+		if err := srv.Serve(ln); err != nil {
 			panic(err)
 		}
 	}()
 
-	_, _ = client.Get("http://localhost" + port + "/")
-	_, _ = client.Get("http://localhost" + port + "/home")
+	_, _ = client.Get("http://" + ln.Addr().String())
+	_, _ = client.Get("http://" + ln.Addr().String() + "/home")
 
 	// Output:
 	//server receive request with request: this header is set when not /home url

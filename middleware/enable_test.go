@@ -2,6 +2,8 @@ package middleware_test
 
 import (
 	"fmt"
+	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -57,7 +59,11 @@ func TestEnable(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleEnable() {
-	port := ":9104"
+	// Example Need a random ephemeral port (to have a free port)
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	enableDummyMiddleware := true // or false
 	dummyMiddleware := func(next http.Handler) http.Handler {
@@ -71,18 +77,18 @@ func ExampleEnable() {
 	)
 
 	// create a server in order to show it work
-	srv := http.NewServeMux()
-	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println("server receive request with request:", request.Header.Get("FakeHeader"))
-	})
-
+	srv := &http.Server{
+		Handler: stack.DecorateHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			fmt.Println("server receive request with request:", request.Header.Get("FakeHeader"))
+		}),
+	}
 	go func() {
-		if err := http.ListenAndServe(port, stack.DecorateHandler(srv)); err != nil {
+		if err := srv.Serve(ln); err != nil {
 			panic(err)
 		}
 	}()
 
-	_, _ = http.Get("http://localhost" + port + "/")
+	_, _ = http.Get("http://" + ln.Addr().String())
 
 	// Output:
 	//server receive request with request: this header is set when not /home url

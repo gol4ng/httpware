@@ -1,6 +1,8 @@
 package middleware_test
 
 import (
+	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -61,7 +63,11 @@ func TestMetrics(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleMetrics() {
-	port := ":9101"
+	// Example Need a random ephemeral port (to have a free port)
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	recorder := prom.NewRecorder(prom.Config{}).RegisterOn(nil)
 
@@ -73,11 +79,14 @@ func ExampleMetrics() {
 		})),
 	)
 
-	srv := http.NewServeMux()
-	srv.Handle("/metrics", promhttp.Handler())
-
+	// create a server in order to show it work
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", stack.DecorateHandler(promhttp.Handler()))
+	srv := &http.Server{
+		Handler: mux,
+	}
 	go func() {
-		if err := http.ListenAndServe(port, stack.DecorateHandler(srv)); err != nil {
+		if err := srv.Serve(ln); err != nil {
 			panic(err)
 		}
 	}()

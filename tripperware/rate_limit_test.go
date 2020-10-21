@@ -20,8 +20,8 @@ func TestRateLimit(t *testing.T) {
 	roundTripperMock := &mocks.RoundTripper{}
 	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	resp := &http.Response{
-		Status:        "OK",
-		StatusCode:    http.StatusOK,
+		Status:     "OK",
+		StatusCode: http.StatusOK,
 	}
 
 	roundTripperMock.On("RoundTrip", request).Times(2).Return(resp, nil)
@@ -81,7 +81,7 @@ func TestConfig_Options(t *testing.T) {
 	res, err := config.ErrorCallback(nil, nil)
 	assert.Nil(t, res)
 	assert.NotNil(t, err)
-	assert.Equal(t, "error from callback",err.Error())
+	assert.Equal(t, "error from callback", err.Error())
 }
 
 // =====================================================================================================================
@@ -89,35 +89,36 @@ func TestConfig_Options(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleRateLimit() {
-	rl := rate_limit.NewTokenBucket(1*time.Second, 1)
-	defer rl.Stop()
-
-	client := http.Client{Transport: tripperware.RateLimit(rl)}
-	listener, err := net.Listen("tcp", ":0")
+	// Example Need a random ephemeral port (to have a free port)
+	ln, err := net.Listen("tcp", ":0")
 	if err != nil {
 		panic(err)
 	}
 
-	addr := listener.Addr().String()
-	srv := http.NewServeMux()
-	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println("server receive request")
-	})
+	rl := rate_limit.NewTokenBucket(1*time.Second, 1)
+	defer rl.Stop()
 
+	client := http.Client{Transport: tripperware.RateLimit(rl)}
+
+	srv := &http.Server{
+		Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			fmt.Println("server receive request")
+		}),
+	}
 	go func() {
-		if err := http.Serve(listener, srv); err != nil {
+		if err := srv.Serve(ln); err != nil {
 			panic(err)
 		}
 	}()
 
-	_, err = client.Get("http://" + addr + "/")
+	_, err = client.Get("http://" + ln.Addr().String())
 	fmt.Println(err)
 
-	_, err = client.Get("http://" + addr + "/")
+	_, err = client.Get("http://" + ln.Addr().String())
 	fmt.Println(errors.Unwrap(err))
 
 	time.Sleep(2 * time.Second)
-	_, err = client.Get("http://" + addr + "/")
+	_, err = client.Get("http://" + ln.Addr().String())
 	fmt.Println(err)
 	// Output:
 	//server receive request

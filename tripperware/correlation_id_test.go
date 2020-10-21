@@ -3,7 +3,9 @@ package tripperware_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -97,7 +99,11 @@ func TestCorrelationIdCustom(t *testing.T) {
 // =====================================================================================================================
 
 func ExampleCorrelationId() {
-	port := ":9001"
+	// Example Need a random ephemeral port (to have a free port)
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// create http client using the tripperwareStack as RoundTripper
 	client := http.Client{
@@ -110,18 +116,18 @@ func ExampleCorrelationId() {
 	}
 
 	// create a server in order to show it work
-	srv := http.NewServeMux()
-	srv.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println("server receive request with request id:", request.Header.Get("my-personal-header-name"))
-	})
-
+	srv := &http.Server{
+		Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			fmt.Println("server receive request with request id:", request.Header.Get("my-personal-header-name"))
+		}),
+	}
 	go func() {
-		if err := http.ListenAndServe(port, srv); err != nil {
+		if err := srv.Serve(ln); err != nil {
 			panic(err)
 		}
 	}()
 
-	_, _ = client.Get("http://localhost" + port + "/")
+	_, _ = client.Get("http://" + ln.Addr().String())
 
 	// Output: server receive request with request id: my-fixed-request-id
 }

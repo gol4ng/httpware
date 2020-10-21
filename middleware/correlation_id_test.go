@@ -64,9 +64,9 @@ func ExampleCorrelationId() {
 	}()
 
 	resp, err := http.Get("http://localhost" + port)
-	if resp != nil {
+	if err != nil {
 		fmt.Println(err)
-	} else {
+	} else if resp != nil {
 		fmt.Printf("%s: %v\n", "my-personal-header-name", resp.Header.Get("my-personal-header-name"))
 	}
 

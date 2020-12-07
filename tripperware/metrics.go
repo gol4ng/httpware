@@ -26,7 +26,9 @@ func Metrics(recorder metrics.Recorder, options ... metrics.Option) httpware.Tri
 				contentLength := int64(0)
 				if resp != nil {
 					statusCode = resp.StatusCode
-					contentLength = resp.ContentLength
+					if resp.ContentLength != -1 {
+						contentLength = resp.ContentLength
+					}
 				}
 				code := strconv.Itoa(statusCode)
 				if !config.SplitStatus {

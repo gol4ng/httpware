@@ -26,7 +26,11 @@ func Metrics(recorder metrics.Recorder, options ... metrics.Option) httpware.Tri
 				contentLength := int64(0)
 				if resp != nil {
 					statusCode = resp.StatusCode
-					if resp.ContentLength != -1 {
+					// ContentLength records the length of the associated content. The
+					// value -1 indicates that the length is unknown. Unless Request.Method
+					// is "HEAD", values >= 0 indicate that the given number of bytes may
+					// be read from Body.
+					if resp.ContentLength <= 0 {
 						contentLength = resp.ContentLength
 					}
 				}

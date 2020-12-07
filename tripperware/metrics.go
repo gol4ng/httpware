@@ -30,7 +30,7 @@ func Metrics(recorder metrics.Recorder, options ... metrics.Option) httpware.Tri
 					// value -1 indicates that the length is unknown. Unless Request.Method
 					// is "HEAD", values >= 0 indicate that the given number of bytes may
 					// be read from Body.
-					if resp.ContentLength <= 0 {
+					if resp.ContentLength > 0 {
 						contentLength = resp.ContentLength
 					}
 				}

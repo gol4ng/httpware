@@ -9,7 +9,7 @@ import (
 
 // Authentication middleware delegate the authentication process to the AuthenticateFunc
 func Authentication(authenticateFunc AuthenticateFunc, options ...AuthOption) httpware.Middleware {
-	config := newAuthConfig(options...)
+	config := NewAuthConfig(options...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
 			newReq, err := authenticateFunc(req)
@@ -44,7 +44,7 @@ func (o *AuthConfig) apply(options ...AuthOption) {
 	}
 }
 
-func newAuthConfig(options ...AuthOption) *AuthConfig {
+func NewAuthConfig(options ...AuthOption) *AuthConfig {
 	opts := &AuthConfig{
 		errorHandler:      DefaultErrorHandler,
 		successMiddleware: httpware.NopMiddleware,

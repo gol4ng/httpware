@@ -179,7 +179,7 @@ func TestNewAuthenticateFunc_WithCredentialFinder(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 
 	authenticator := &mocks.Authenticator{}
-	authenticator.On("Authenticate", "my_credential_finder_value").Return("my_authenticate_credential", nil)
+	authenticator.On("Authenticate", context.TODO(), "my_credential_finder_value").Return("my_authenticate_credential", nil)
 
 	authenticateFunc := middleware.NewAuthenticateFunc(
 		authenticator,

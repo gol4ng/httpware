@@ -164,7 +164,7 @@ func TestNewAuthenticateFunc(t *testing.T) {
 	request.Header.Set("Authorization", "my_credential")
 
 	authenticator := &mocks.Authenticator{}
-	authenticator.On("Authenticate", "my_credential").Return("my_authenticate_credential", nil)
+	authenticator.On("Authenticate", context.TODO(), "my_credential").Return("my_authenticate_credential", nil)
 
 	authenticateFunc := middleware.NewAuthenticateFunc(authenticator)
 
@@ -201,7 +201,7 @@ func TestNewAuthenticateFunc_Error(t *testing.T) {
 
 	err := errors.New("my_authenticate_error")
 	authenticator := &mocks.Authenticator{}
-	authenticator.On("Authenticate", "my_credential").Return("my_authenticate_credential", err)
+	authenticator.On("Authenticate", context.TODO(), "my_credential").Return("my_authenticate_credential", err)
 
 	authenticateFunc := middleware.NewAuthenticateFunc(authenticator)
 

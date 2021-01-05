@@ -74,17 +74,18 @@ func WithSuccessMiddleware(middleware httpware.Middleware) AuthOption {
 
 // NewAuthenticateFunc is an AuthenticateFunc that find, authenticate and hydrate credentials on the request context
 func NewAuthenticateFunc(authenticator auth.Authenticator, options ...AuthFuncOption) AuthenticateFunc {
-	config := newAuthFuncConfig(options...)
+	config := NewAuthFuncConfig(options...)
 	return func(request *http.Request) (*http.Request, error) {
+		ctx := request.Context()
 		credential := config.credentialFinder(request)
 		if authenticator != nil {
-			creds, err := authenticator.Authenticate(credential)
+			creds, err := authenticator.Authenticate(ctx, credential)
 			if err != nil {
 				return request, err
 			}
 			credential = creds
 		}
-		return request.WithContext(auth.CredentialToContext(request.Context(), credential)), nil
+		return request.WithContext(auth.CredentialToContext(ctx, credential)), nil
 	}
 }
 
@@ -101,7 +102,7 @@ func (o *AuthFuncConfig) apply(options ...AuthFuncOption) {
 	}
 }
 
-func newAuthFuncConfig(options ...AuthFuncOption) *AuthFuncConfig {
+func NewAuthFuncConfig(options ...AuthFuncOption) *AuthFuncConfig {
 	opts := &AuthFuncConfig{
 		credentialFinder: DefaultCredentialFinder,
 	}

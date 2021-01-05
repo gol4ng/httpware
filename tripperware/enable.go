@@ -1,7 +1,7 @@
 package tripperware
 
 import (
-	"github.com/gol4ng/httpware/v3"
+	"github.com/gol4ng/httpware/v4"
 )
 
 // Enable tripperware is used to conditionnaly add a tripperware to a TripperwareStack

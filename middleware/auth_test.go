@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gol4ng/httpware/v3/auth"
-	"github.com/gol4ng/httpware/v3/middleware"
-	"github.com/gol4ng/httpware/v3/mocks"
+	"github.com/gol4ng/httpware/v4/auth"
+	"github.com/gol4ng/httpware/v4/middleware"
+	"github.com/gol4ng/httpware/v4/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

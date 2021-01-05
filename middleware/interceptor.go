@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gol4ng/httpware/v3"
-	"github.com/gol4ng/httpware/v3/interceptor"
+	"github.com/gol4ng/httpware/v4"
+	"github.com/gol4ng/httpware/v4/interceptor"
 )
 
 // Interceptor middleware allow multiple req.Body read and allow to set callback before and after roundtrip

@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware/v3"
-	"github.com/gol4ng/httpware/v3/correlation_id"
+	"github.com/gol4ng/httpware/v4"
+	"github.com/gol4ng/httpware/v4/correlation_id"
 )
 
 func getMiddleware(t *testing.T, i *int, iBefore int, iAfter int) httpware.Middleware {

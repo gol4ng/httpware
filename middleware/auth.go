@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gol4ng/httpware/v3"
-	"github.com/gol4ng/httpware/v3/auth"
+	"github.com/gol4ng/httpware/v4"
+	"github.com/gol4ng/httpware/v4/auth"
 )
 
 // Authentication middleware delegate the authentication process to the AuthenticateFunc

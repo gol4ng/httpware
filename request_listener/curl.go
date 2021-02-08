@@ -9,10 +9,23 @@ import (
 	"strings"
 )
 
-// CurlLogDumper will log the given http.Request
-// it gonna log the request using cli curl command format
-// Caution request header and Body can be heavy!!
-// Pay attention to the dump quantity/weight
+// CurlLogDumper will log the request using the curl command format
+// /!\ Caution request header and Body can be heavy !!
+// Eg tripperware:
+// tripperware.Skip(
+//     func(request *http.Request) bool {
+//        return request.Header.Get("dump") != ""
+//     },
+//     tripperware.RequestListener(request_listener.CurlLogDumper),
+// )
+//
+// Eg middleware:
+// middleware.Skip(
+//     func(request *http.Request) bool {
+//        return request.Header.Get("dump") != ""
+//     },
+//     middleware.RequestListener(request_listener.CurlLogDumper),
+// )
 func CurlLogDumper(request *http.Request) {
 	if request == nil {
 		return

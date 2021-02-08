@@ -30,11 +30,11 @@ func TestRequestListener(t *testing.T) {
 	roundTripperMock.On("RoundTrip", mock.AnythingOfType("*http.Request")).Return(resp, nil)
 
 	called := false
-	mockExporter := func(innerReq *http.Request) {
+	listenerMock := func(innerReq *http.Request) {
 		called = true
 		assert.Equal(t, req, innerReq)
 	}
-	resp2, err := tripperware.RequestListener(mockExporter)(roundTripperMock).RoundTrip(req)
+	resp2, err := tripperware.RequestListener(listenerMock)(roundTripperMock).RoundTrip(req)
 	assert.Nil(t, err)
 	assert.Equal(t, resp, resp2)
 	assert.True(t, called)

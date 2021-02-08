@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+// CurlLogDumper will log the given http.Request
+// it gonna log the request using cli curl command format
+// Caution request header and Body can be heavy!!
+// Pay attention to the dump quantity/weight
 func CurlLogDumper(request *http.Request) {
 	if request == nil {
 		return

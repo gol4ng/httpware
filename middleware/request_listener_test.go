@@ -25,12 +25,12 @@ func TestRequestListener(t *testing.T) {
 	})
 
 	called := false
-	mockExporter := func(innerReq *http.Request) {
+	listenerMock := func(innerReq *http.Request) {
 		called = true
 		assert.Equal(t, req, innerReq)
 	}
 
-	middleware.RequestListener(mockExporter)(handler).ServeHTTP(responseWriter, req)
+	middleware.RequestListener(listenerMock)(handler).ServeHTTP(responseWriter, req)
 	assert.True(t, called)
 	assert.True(t, handlerCalled)
 }

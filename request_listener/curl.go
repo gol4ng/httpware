@@ -11,6 +11,8 @@ import (
 
 // CurlLogDumper will log the request using the curl command format
 // /!\ Caution request header and Body can be heavy !!
+//
+// Following example will log curl command if request has header "dump" not empty
 // Eg tripperware:
 // tripperware.Skip(
 //     func(request *http.Request) bool {

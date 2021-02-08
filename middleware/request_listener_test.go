@@ -8,12 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gol4ng/httpware/v4/exporter"
 	"github.com/gol4ng/httpware/v4/middleware"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCurlExporter(t *testing.T) {
+func TestRequestListener(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", ioutil.NopCloser(strings.NewReader(url.Values{
 		"mykey": {"myvalue"},
 	}.Encode())))
@@ -26,13 +25,12 @@ func TestCurlExporter(t *testing.T) {
 	})
 
 	called := false
-	mockExporter := func(cmd *exporter.Cmd, err error) {
+	mockExporter := func(innerReq *http.Request) {
 		called = true
-		assert.Equal(t, "curl -X 'GET' 'http://fake-addr' -d 'mykey=myvalue'", cmd.String())
-		assert.Nil(t, err)
+		assert.Equal(t, req, innerReq)
 	}
 
-	middleware.CurlExporter(mockExporter)(handler).ServeHTTP(responseWriter, req)
+	middleware.RequestListener(mockExporter)(handler).ServeHTTP(responseWriter, req)
 	assert.True(t, called)
 	assert.True(t, handlerCalled)
 }

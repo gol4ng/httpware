@@ -11,12 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/gol4ng/httpware/v4/exporter"
 	"github.com/gol4ng/httpware/v4/mocks"
 	"github.com/gol4ng/httpware/v4/tripperware"
 )
 
-func TestCurlExporter(t *testing.T) {
+func TestRequestListener(t *testing.T) {
 	roundTripperMock := &mocks.RoundTripper{}
 	req := httptest.NewRequest(http.MethodGet, "http://fake-addr", ioutil.NopCloser(strings.NewReader(url.Values{
 		"mykey": {"myvalue"},
@@ -31,12 +30,11 @@ func TestCurlExporter(t *testing.T) {
 	roundTripperMock.On("RoundTrip", mock.AnythingOfType("*http.Request")).Return(resp, nil)
 
 	called := false
-	mockExporter := func(cmd *exporter.Cmd, err error) {
+	mockExporter := func(innerReq *http.Request) {
 		called = true
-		assert.Equal(t, "curl -X 'GET' 'http://fake-addr' -d 'mykey=myvalue'", cmd.String())
-		assert.Nil(t, err)
+		assert.Equal(t, req, innerReq)
 	}
-	resp2, err := tripperware.CurlExporter(mockExporter)(roundTripperMock).RoundTrip(req)
+	resp2, err := tripperware.RequestListener(mockExporter)(roundTripperMock).RoundTrip(req)
 	assert.Nil(t, err)
 	assert.Equal(t, resp, resp2)
 	assert.True(t, called)

@@ -1,6 +1,8 @@
 package prometheus
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 type Config struct {
 	// Namespace is the prefix that will be set on the metrics, by default it will be empty.
@@ -45,5 +47,27 @@ func (c *Config) defaults() {
 
 	if c.MethodLabel == "" {
 		c.MethodLabel = "method"
+	}
+}
+
+type ConfigTrace struct {
+	// Namespace is the prefix that will be set on the metrics, by default it will be empty.
+	Namespace string
+	// DurationBuckets are the buckets used by Prometheus for the HTTP request duration metrics,
+	// by default uses Prometheus default buckets (from 5ms to 10s).
+	DetailLatencyBuckets []float64
+	DNSLatencyBuckets    []float64
+	TLSLatencyBuckets    []float64
+}
+
+func (c *ConfigTrace) defaults() {
+	if len(c.DetailLatencyBuckets) == 0 {
+		c.DetailLatencyBuckets = []float64{.005, .01, .025, .05}
+	}
+	if len(c.DNSLatencyBuckets) == 0 {
+		c.DNSLatencyBuckets = []float64{.005, .01, .025, .05}
+	}
+	if len(c.TLSLatencyBuckets) == 0 {
+		c.TLSLatencyBuckets = []float64{.05, .1, .25, .5}
 	}
 }

@@ -3,8 +3,8 @@ package tripperware
 import (
 	"net/http"
 
-	"github.com/gol4ng/httpware/v3"
-	"github.com/gol4ng/httpware/v3/auth"
+	"github.com/gol4ng/httpware/v4"
+	"github.com/gol4ng/httpware/v4/auth"
 )
 
 func AuthenticationForwarder(options ...AuthOption) httpware.Tripperware {

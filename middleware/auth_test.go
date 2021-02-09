@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gol4ng/httpware/v3/auth"
-	"github.com/gol4ng/httpware/v3/middleware"
-	"github.com/gol4ng/httpware/v3/mocks"
+	"github.com/gol4ng/httpware/v4/auth"
+	"github.com/gol4ng/httpware/v4/middleware"
+	"github.com/gol4ng/httpware/v4/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -164,7 +164,7 @@ func TestNewAuthenticateFunc(t *testing.T) {
 	request.Header.Set("Authorization", "my_credential")
 
 	authenticator := &mocks.Authenticator{}
-	authenticator.On("Authenticate", "my_credential").Return("my_authenticate_credential", nil)
+	authenticator.On("Authenticate", context.TODO(), "my_credential").Return("my_authenticate_credential", nil)
 
 	authenticateFunc := middleware.NewAuthenticateFunc(authenticator)
 
@@ -179,7 +179,7 @@ func TestNewAuthenticateFunc_WithCredentialFinder(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 
 	authenticator := &mocks.Authenticator{}
-	authenticator.On("Authenticate", "my_credential_finder_value").Return("my_authenticate_credential", nil)
+	authenticator.On("Authenticate", context.TODO(), "my_credential_finder_value").Return("my_authenticate_credential", nil)
 
 	authenticateFunc := middleware.NewAuthenticateFunc(
 		authenticator,
@@ -201,7 +201,7 @@ func TestNewAuthenticateFunc_Error(t *testing.T) {
 
 	err := errors.New("my_authenticate_error")
 	authenticator := &mocks.Authenticator{}
-	authenticator.On("Authenticate", "my_credential").Return("my_authenticate_credential", err)
+	authenticator.On("Authenticate", context.TODO(), "my_credential").Return("my_authenticate_credential", err)
 
 	authenticateFunc := middleware.NewAuthenticateFunc(authenticator)
 

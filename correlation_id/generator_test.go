@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware/v3/correlation_id"
+	"github.com/gol4ng/httpware/v4/correlation_id"
 )
 
 func Test_Random(t *testing.T) {

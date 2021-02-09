@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gol4ng/httpware/v3/auth"
+	"github.com/gol4ng/httpware/v4/auth"
 	"github.com/stretchr/testify/assert"
 )
 

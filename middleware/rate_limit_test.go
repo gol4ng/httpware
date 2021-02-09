@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gol4ng/httpware/v3"
-	"github.com/gol4ng/httpware/v3/middleware"
-	"github.com/gol4ng/httpware/v3/mocks"
-	"github.com/gol4ng/httpware/v3/rate_limit"
+	"github.com/gol4ng/httpware/v4"
+	"github.com/gol4ng/httpware/v4/middleware"
+	"github.com/gol4ng/httpware/v4/mocks"
+	"github.com/gol4ng/httpware/v4/rate_limit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

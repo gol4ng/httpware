@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gol4ng/httpware/v3"
-	"github.com/gol4ng/httpware/v3/rate_limit"
+	"github.com/gol4ng/httpware/v4"
+	"github.com/gol4ng/httpware/v4/rate_limit"
 )
 
 func RateLimit(limiter rate_limit.RateLimiter, options ...RateLimitOption) httpware.Middleware {

@@ -10,11 +10,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gol4ng/httpware/v3"
-	"github.com/gol4ng/httpware/v3/metrics"
-	"github.com/gol4ng/httpware/v3/metrics/prometheus"
-	"github.com/gol4ng/httpware/v3/mocks"
-	"github.com/gol4ng/httpware/v3/tripperware"
+	"github.com/gol4ng/httpware/v4"
+	"github.com/gol4ng/httpware/v4/metrics"
+	"github.com/gol4ng/httpware/v4/metrics/prometheus"
+	"github.com/gol4ng/httpware/v4/mocks"
+	"github.com/gol4ng/httpware/v4/tripperware"
 )
 
 func TestMetrics(t *testing.T) {

@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/gol4ng/httpware/v3"
-	"github.com/gol4ng/httpware/v3/mocks"
-	"github.com/gol4ng/httpware/v3/tripperware"
+	"github.com/gol4ng/httpware/v4"
+	"github.com/gol4ng/httpware/v4/mocks"
+	"github.com/gol4ng/httpware/v4/tripperware"
 )
 
 func TestInterceptor(t *testing.T) {

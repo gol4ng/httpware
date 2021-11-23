@@ -1,12 +1,11 @@
 package tripperware_test
 
 import (
+	"github.com/agiledragon/gomonkey/v2"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
-
-	"bou.ke/monkey"
 
 	"github.com/stretchr/testify/assert"
 
@@ -38,12 +37,13 @@ func TestMetrics(t *testing.T) {
 	recorderMock.On("ObserveHTTPRequestDuration", req.Context(), req.URL.String(), requestTimeDuration, http.MethodGet, "2xx")
 	recorderMock.On("ObserveHTTPResponseSize", req.Context(), req.URL.String(), resp.ContentLength, http.MethodGet, "2xx")
 	// mock time.Now method in order to return always the same time whenever the test is launched
-	monkey.Patch(time.Now, func() time.Time { return baseTime })
-	monkey.Patch(time.Since, func(since time.Time) time.Duration {
+	patch := gomonkey.NewPatches()
+	patch.ApplyFunc(time.Now, func() time.Time { return baseTime })
+	patch.ApplyFunc(time.Since, func(since time.Time) time.Duration {
 		assert.Equal(t, baseTime, since)
 		return requestTimeDuration
 	})
-	defer monkey.UnpatchAll()
+	defer patch.Reset()
 
 	// create metrics httpClient middleware
 	stack := httpware.TripperwareStack(
@@ -74,12 +74,13 @@ func TestMetricsContentLengthUnknown(t *testing.T) {
 	recorderMock.On("ObserveHTTPRequestDuration", req.Context(), req.URL.String(), requestTimeDuration, http.MethodGet, "2xx")
 	recorderMock.On("ObserveHTTPResponseSize", req.Context(), req.URL.String(), expectedContentLength, http.MethodGet, "2xx")
 	// mock time.Now method in order to return always the same time whenever the test is launched
-	monkey.Patch(time.Now, func() time.Time { return baseTime })
-	monkey.Patch(time.Since, func(since time.Time) time.Duration {
+	patch := gomonkey.NewPatches()
+	patch.ApplyFunc(time.Now, func() time.Time { return baseTime })
+	patch.ApplyFunc(time.Since, func(since time.Time) time.Duration {
 		assert.Equal(t, baseTime, since)
 		return requestTimeDuration
 	})
-	defer monkey.UnpatchAll()
+	defer patch.Reset()
 
 	// create metrics httpClient middleware
 	stack := httpware.TripperwareStack(

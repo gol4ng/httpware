@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"bou.ke/monkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/assert"
 
@@ -47,12 +47,13 @@ func TestMetrics(t *testing.T) {
 	recorderMock.On("ObserveHTTPRequestDuration", req.Context(), req.URL.String(), requestTimeDuration, http.MethodGet, "2xx")
 	recorderMock.On("ObserveHTTPResponseSize", req.Context(), req.URL.String(), int64(len(responseBody)), http.MethodGet, "2xx")
 	// mock time.Now method in order to return always the same time whenever the test is launched
-	monkey.Patch(time.Now, func() time.Time { return baseTime })
-	monkey.Patch(time.Since, func(since time.Time) time.Duration {
+	patch := gomonkey.NewPatches()
+	patch.ApplyFunc(time.Now, func() time.Time { return baseTime })
+	patch.ApplyFunc(time.Since, func(since time.Time) time.Duration {
 		assert.Equal(t, baseTime, since)
 		return requestTimeDuration
 	})
-	defer monkey.UnpatchAll()
+	defer patch.Reset()
 
 	// call the middleware stack
 	stack.DecorateHandlerFunc(handler).ServeHTTP(responseWriterMock, req)

@@ -31,7 +31,6 @@ func TestMetrics(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "http://fake-addr", nil)
 	// create handler that set http status to 200 and write some response content
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		assert.IsType(t, middleware.NewResponseWriterInterceptor(nil), w)
 		assert.Equal(t, req, r)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(responseBody)) // contentLength=13

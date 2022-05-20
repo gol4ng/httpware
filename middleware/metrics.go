@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
+	"github.com/felixge/httpsnoop"
 	"github.com/gol4ng/httpware/v4"
 	"github.com/gol4ng/httpware/v4/metrics"
 )
@@ -14,31 +14,30 @@ func Metrics(recorder metrics.Recorder, options ... metrics.Option) httpware.Mid
 	config := metrics.NewConfig(recorder, options...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
-			writerInterceptor, ok := writer.(*ResponseWriterInterceptor)
-			if !ok {
-				writerInterceptor = NewResponseWriterInterceptor(writer)
-			}
 			handlerName := config.IdentifierProvider(req)
 			if config.MeasureInflightRequests {
 				config.Recorder.AddInflightRequests(req.Context(), handlerName, 1)
 				defer config.Recorder.AddInflightRequests(req.Context(), handlerName, -1)
 			}
 
-			start := time.Now()
+			httpMetrics := httpsnoop.Metrics{}
+
 			defer func() {
-				code := strconv.Itoa(writerInterceptor.StatusCode)
+				code := strconv.Itoa(httpMetrics.Code)
 				if !config.SplitStatus {
-					code = fmt.Sprintf("%dxx", writerInterceptor.StatusCode/100)
+					code = fmt.Sprintf("%dxx", httpMetrics.Code/100)
 				}
 
-				config.Recorder.ObserveHTTPRequestDuration(req.Context(), handlerName, time.Since(start), req.Method, code)
+				config.Recorder.ObserveHTTPRequestDuration(req.Context(), handlerName, httpMetrics.Duration, req.Method, code)
 
 				if config.ObserveResponseSize {
-					config.Recorder.ObserveHTTPResponseSize(req.Context(), handlerName, int64(len(writerInterceptor.Body)), req.Method, code)
+					config.Recorder.ObserveHTTPResponseSize(req.Context(), handlerName, httpMetrics.Written, req.Method, code)
 				}
 			}()
 
-			next.ServeHTTP(writerInterceptor, req)
+			httpMetrics.CaptureMetrics(writer, func(writer http.ResponseWriter) {
+				next.ServeHTTP(writer, req)
+			})
 		})
 	}
 }

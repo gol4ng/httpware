@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/felixge/httpsnoop"
 	"net/http"
 )
 
@@ -10,19 +11,25 @@ type ResponseWriterInterceptor struct {
 	Body       []byte
 }
 
-func (w *ResponseWriterInterceptor) WriteHeader(statusCode int) {
-	w.StatusCode = statusCode
-	w.ResponseWriter.WriteHeader(statusCode)
-}
-
-func (w *ResponseWriterInterceptor) Write(p []byte) (int, error) {
-	w.Body = append(w.Body, p...)
-	return w.ResponseWriter.Write(p)
-}
-
 func NewResponseWriterInterceptor(writer http.ResponseWriter) *ResponseWriterInterceptor {
-	return &ResponseWriterInterceptor{
-		StatusCode:     http.StatusOK,
-		ResponseWriter: writer,
+	rw := &ResponseWriterInterceptor{
+		StatusCode: http.StatusOK,
 	}
+	wrapper := httpsnoop.Wrap(writer, httpsnoop.Hooks{
+		WriteHeader: func(next httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
+			return func(code int) {
+				next(code)
+				rw.StatusCode = code
+			}
+		},
+		Write: func(next httpsnoop.WriteFunc) httpsnoop.WriteFunc {
+			return func(p []byte) (int, error) {
+				n, err := next(p)
+				rw.Body = append(rw.Body, p...)
+				return n, err
+			}
+		},
+	})
+	rw.ResponseWriter = wrapper
+	return rw
 }

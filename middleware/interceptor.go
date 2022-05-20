@@ -12,18 +12,15 @@ func Interceptor(options ...InterceptorOption) httpware.Middleware {
 	config := NewInterceptorConfig(options...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
-			writerInterceptor, ok := writer.(*ResponseWriterInterceptor)
-			if !ok {
-				writerInterceptor = NewResponseWriterInterceptor(writer)
-			}
+			w := NewResponseWriterInterceptor(writer)
 
 			req.Body = interceptor.NewCopyReadCloser(req.Body)
-			config.CallbackBefore(writerInterceptor, req)
+			config.CallbackBefore(w, req)
 			defer func() {
-				config.CallbackAfter(writerInterceptor, req)
+				config.CallbackAfter(w, req)
 			}()
 
-			next.ServeHTTP(writerInterceptor, req)
+			next.ServeHTTP(w.ResponseWriter, req)
 		})
 	}
 }

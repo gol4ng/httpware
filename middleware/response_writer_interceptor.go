@@ -12,7 +12,11 @@ type ResponseWriterInterceptor struct {
 }
 
 func NewResponseWriterInterceptor(writer http.ResponseWriter) *ResponseWriterInterceptor {
-	rw := &ResponseWriterInterceptor{
+	rw, ok := writer.(*ResponseWriterInterceptor)
+	if ok {
+		return rw
+	}
+	rw = &ResponseWriterInterceptor{
 		StatusCode: http.StatusOK,
 	}
 	wrapper := httpsnoop.Wrap(writer, httpsnoop.Hooks{

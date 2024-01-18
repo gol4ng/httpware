@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"net/http"
 )
 
 // io.Reader with Read method reset offset when EOF
@@ -42,7 +43,12 @@ type copyReadCloser struct {
 // Second read after EOF
 // copyBuffered --> copy BufReader simple buffer with fix size
 // when BufReader is EOF offset is reset to read again
-func NewCopyReadCloser(src io.ReadCloser) *copyReadCloser {
+func NewCopyReadCloser(src io.ReadCloser) io.ReadCloser {
+	// No copying needed on nil or http.NoBody.
+	if src == nil || src == http.NoBody {
+		return src
+	}
+
 	buf := &bytes.Buffer{}
 	tr := &copyReadCloser{
 		copyTemp: buf,
@@ -56,7 +62,7 @@ func NewCopyReadCloser(src io.ReadCloser) *copyReadCloser {
 	return tr
 }
 
-func (tr *copyReadCloser)Read(p []byte) (n int, err error) {
+func (tr *copyReadCloser) Read(p []byte) (n int, err error) {
 	n, err = tr.ReadCloser.Read(p)
 	if err == io.EOF {
 		if tr.copy == nil {

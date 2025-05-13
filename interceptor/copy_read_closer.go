@@ -37,8 +37,10 @@ type copyReadCloser struct {
 }
 
 // First read with io.TeeReader
-//      -> copyBuffered
-//    /
+//
+//	  -> copyBuffered
+//	/
+//
 // src --> output
 // Second read after EOF
 // copyBuffered --> copy BufReader simple buffer with fix size

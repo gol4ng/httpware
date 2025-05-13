@@ -49,7 +49,7 @@ func TestEnable(t *testing.T) {
 	for k, test := range tests {
 		executed = false
 		t.Run(fmt.Sprintf("test %d (%v)", k, test), func(t *testing.T) {
-			resp2, err := tripperware.Enable(test.enable, dummyTripperware, )(roundTripperMock).RoundTrip(req)
+			resp2, err := tripperware.Enable(test.enable, dummyTripperware)(roundTripperMock).RoundTrip(req)
 
 			assert.Nil(t, err)
 			assert.Equal(t, resp, resp2)

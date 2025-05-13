@@ -9,7 +9,7 @@ import (
 )
 
 func TestTokenBucket_Allow(t *testing.T) {
-	limiter := rate_limit.NewTokenBucket(1 * time.Millisecond, 1)
+	limiter := rate_limit.NewTokenBucket(1*time.Second, 1)
 	defer limiter.Stop()
 
 	assert.NoError(t, limiter.Allow(nil))
@@ -18,6 +18,6 @@ func TestTokenBucket_Allow(t *testing.T) {
 	assert.EqualError(t, limiter.Allow(nil), "request limit reached")
 	limiter.Inc(nil)
 
-	time.Sleep(2 * time.Millisecond)
+	time.Sleep(2 * time.Second)
 	assert.NoError(t, limiter.Allow(nil))
 }

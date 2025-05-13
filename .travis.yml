@@ -13,7 +13,7 @@ before_script:
   - ./cc-test-reporter before-build
 
 script:
-  - go test --race -gcflags=-l -coverprofile c.out ./...
+  - go test --race -coverprofile c.out ./...
 
 after_script:
   - CC_TEST_REPORTER_ID=$CC_TEST_REPORTER_ID ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT

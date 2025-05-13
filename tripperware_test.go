@@ -14,7 +14,7 @@ import (
 )
 
 func getTripper(t *testing.T, i *int, iBefore int, iAfter int) httpware.Tripperware {
-	return httpware.Tripperware(func(roundTripper http.RoundTripper) http.RoundTripper {
+	return func(roundTripper http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 			defer func() {
 				assert.Equal(t, iAfter, *i)
@@ -24,7 +24,7 @@ func getTripper(t *testing.T, i *int, iBefore int, iAfter int) httpware.Tripperw
 			*i++
 			return roundTripper.RoundTrip(req)
 		})
-	})
+	}
 }
 
 func getTripperShouldNotBeCalled(t *testing.T) httpware.Tripperware {
@@ -44,6 +44,9 @@ func TestTripperware_RoundTrip(t *testing.T) {
 	roundTripperMock.On("RoundTrip", req).Return(resp, nil)
 
 	originalDefaultTransport := http.DefaultTransport
+	defer func() {
+		http.DefaultTransport = originalDefaultTransport
+	}()
 	http.DefaultTransport = roundTripperMock
 
 	tripper := httpware.Tripperware(func(roundTripper http.RoundTripper) http.RoundTripper {
@@ -54,8 +57,6 @@ func TestTripperware_RoundTrip(t *testing.T) {
 	r, err := tripper.RoundTrip(req)
 	assert.Nil(t, err)
 	assert.Equal(t, r, resp)
-
-	http.DefaultTransport = originalDefaultTransport
 }
 
 func TestTripperware_DecorateClient(t *testing.T) {
@@ -464,7 +465,7 @@ func TestTripperwares_PrependIf(t *testing.T) {
 // =============================== use those examples when declaring an http CLIENT ====================================
 // =====================================================================================================================
 
-func ExampleTripperwareStack_WithDefaultTransport() {
+func ExampleTripperwareStack_withDefaultTransport() {
 	// create a tripperware that adds a custom header on each http-client request
 	addCustomRequestHeader := func(t http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
@@ -498,7 +499,7 @@ func ExampleTripperwareStack_WithDefaultTransport() {
 	//http request headers : map[Custom-Header:[wonderful header value]]
 }
 
-func ExampleTripperwareStack_WithCustomTransport() {
+func ExampleTripperwareStack_withCustomTransport() {
 	// create a tripperware that adds a custom header on each http-client request
 	addCustomRequestHeader := func(t http.RoundTripper) http.RoundTripper {
 		return httpware.RoundTripFunc(func(req *http.Request) (*http.Response, error) {

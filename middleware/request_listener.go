@@ -4,7 +4,17 @@ import (
 	"net/http"
 
 	"github.com/gol4ng/httpware/v4"
+	"github.com/gol4ng/httpware/v4/request_listener"
 )
+
+func CurlLogDumper() httpware.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			request_listener.CurlLogDumper(request)
+			next.ServeHTTP(writer, request)
+		})
+	}
+}
 
 func RequestListener(listeners ...func(*http.Request)) httpware.Middleware {
 	return func(next http.Handler) http.Handler {

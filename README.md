@@ -13,16 +13,18 @@ Package httpware is a collection of middleware (net/http.Handler wrapper) and tr
 - **CorrelationId** gets or creates a `correlation_id` and adds it to the `http.request` Context and in the `http.response` header (in order to propagate this ID throught all microservices)
 - **Metrics** will use a given Recorder to collect `inflight request`(current parrallel request count), `request duration` and `response size`.
 
-| Name   | Middleware | Tripperware|
-| ------ | :--------: | :--------: |
-|**Authentication**|X||
-|**AuthenticationForwarder**||X|
-|**CorrelationId**|X|X|
-|**Metrics**|X|X|
-|**Interceptor**|X|X|
-|**Skip**|X|X|
-|**Enable**|X|X|
-|**RateLimiter**|X|X|
+| Name                        | Middleware | Tripperware|
+|-----------------------------| :--------: | :--------: |
+| **Authentication**          |X||
+| **AuthenticationForwarder** ||X|
+| **CorrelationId**           |X|X|
+| **Metrics**                 |X|X|
+| **Interceptor**             |X|X|
+| **Skip**                    |X|X|
+| **Enable**                  |X|X|
+| **RateLimiter**             |X|X|
+| **RequestListener**         |X|X|
+| **CurlLogDumper**           |X|X|
 
 ## Installation
 

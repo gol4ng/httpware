@@ -11,6 +11,10 @@ func NopMiddleware(next http.Handler) http.Handler {
 // it wraps an http.Handler with another one
 type Middleware func(http.Handler) http.Handler
 
+func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	m(NopHandler).ServeHTTP(w, r)
+}
+
 // Append will add given middlewares after existing one
 // t1.Append(t2, t3) => [t1, t2, t3]
 // t1.Append(t2, t3).DecorateHandler(<yourHandler>) == t1(t2(t3(<yourHandler>)))
@@ -44,8 +48,15 @@ func (m Middleware) PrependIf(condition bool, middlewares ...Middleware) Middlew
 // [t1, t2, t3].DecorateHandler(<yourHandler>) == t1(t2(t3(<yourHandler>)))
 type Middlewares []Middleware
 
+func (m Middlewares) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	m.DecorateHandler(nil).ServeHTTP(w, r)
+}
+
 // DecorateHandler will decorate a given http.Handler with the given middlewares created by MiddlewareStack()
 func (m Middlewares) DecorateHandler(handler http.Handler) http.Handler {
+	if handler == nil {
+		handler = NopHandler
+	}
 	mLen := len(m)
 	for i := mLen - 1; i >= 0; i-- {
 		handler = m[i](handler)
@@ -55,6 +66,9 @@ func (m Middlewares) DecorateHandler(handler http.Handler) http.Handler {
 
 // DecorateHandler will decorate a given http.HandlerFunc with the given middleware collection created by MiddlewareStack()
 func (m Middlewares) DecorateHandlerFunc(handler http.HandlerFunc) http.Handler {
+	if handler == nil {
+		return m.DecorateHandler(nil)
+	}
 	return m.DecorateHandler(handler)
 }
 

@@ -72,7 +72,7 @@ func ExampleCorrelationId() {
 		}
 	}()
 
-	resp, err := http.Get("http://"+ln.Addr().String())
+	resp, err := http.Get("http://" + ln.Addr().String())
 	if err != nil {
 		fmt.Println(err)
 	} else if resp != nil {

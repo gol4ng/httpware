@@ -25,7 +25,6 @@ func RateLimit(rateLimiter rate_limit.RateLimiter, options ...RateLimitOption) h
 	}
 }
 
-
 type RateLimitErrorCallback func(request *http.Request, limitErr error) (response *http.Response, err error)
 
 type RateLimitOption func(*RateLimitConfig)

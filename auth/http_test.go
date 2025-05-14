@@ -21,20 +21,20 @@ func TestFromHeader(t *testing.T) {
 		{
 			request: &http.Request{Header: http.Header{
 				"Authorization": []string{"foo"},
-			},},
+			}},
 			expectedCredential: "foo",
 		},
 		{
 			request: &http.Request{Header: http.Header{
 				"X-Authorization": []string{"foo"},
-			},},
+			}},
 			expectedCredential: "foo",
 		},
 		{
 			request: &http.Request{Header: http.Header{
-				"Authorization": []string{"foo"},
+				"Authorization":   []string{"foo"},
 				"X-Authorization": []string{"bar"},
-			},},
+			}},
 			expectedCredential: "foo",
 		},
 	}

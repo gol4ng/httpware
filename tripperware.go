@@ -79,7 +79,7 @@ type Tripperwares []Tripperware
 // it will decorate the http-client request and use the default `http.DefaultTransport` RoundTripper
 // use `TripperwareStack(<yourTripperwares>).Decorate(<yourTripper>)` if you don't want to use `http.DefaultTransport`
 func (t Tripperwares) RoundTrip(req *http.Request) (*http.Response, error) {
-	return t.DecorateRoundTripper(http.DefaultTransport).RoundTrip(req)
+	return t.DecorateRoundTripper(nil).RoundTrip(req)
 }
 
 // DecorateClient will decorate a given http.Client with the tripperware collection
@@ -111,7 +111,7 @@ func (t Tripperwares) DecorateRoundTripper(tripper http.RoundTripper) http.Round
 // DecorateRoundTripFunc will decorate a given RoundTripFunc with the tripperware collection
 func (t Tripperwares) DecorateRoundTripFunc(tripper RoundTripFunc) http.RoundTripper {
 	if tripper == nil {
-		return t.DecorateRoundTripper(http.DefaultTransport)
+		return t.DecorateRoundTripper(nil)
 	}
 	return t.DecorateRoundTripper(tripper)
 }

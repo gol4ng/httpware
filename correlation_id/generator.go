@@ -6,7 +6,7 @@ import (
 	"unsafe"
 )
 
-//https://stackoverflow.com/a/31832326
+// https://stackoverflow.com/a/31832326
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const (
 	letterIdxBits = 6                    // 6 bits to represent a letter index

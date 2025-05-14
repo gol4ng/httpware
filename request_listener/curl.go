@@ -15,18 +15,22 @@ import (
 // Following example will log curl command if request has header "dump" not empty
 // Eg tripperware:
 // tripperware.Skip(
-//     func(request *http.Request) bool {
-//        return request.Header.Get("dump") != ""
-//     },
-//     tripperware.RequestListener(request_listener.CurlLogDumper),
+//
+//	func(request *http.Request) bool {
+//	   return request.Header.Get("dump") != ""
+//	},
+//	tripperware.RequestListener(request_listener.CurlLogDumper),
+//
 // )
 //
 // Eg middleware:
 // middleware.Skip(
-//     func(request *http.Request) bool {
-//        return request.Header.Get("dump") != ""
-//     },
-//     middleware.RequestListener(request_listener.CurlLogDumper),
+//
+//	func(request *http.Request) bool {
+//	   return request.Header.Get("dump") != ""
+//	},
+//	middleware.RequestListener(request_listener.CurlLogDumper),
+//
 // )
 func CurlLogDumper(request *http.Request) {
 	if request == nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/gol4ng/httpware/v4/metrics"
 )
 
-func Metrics(recorder metrics.Recorder, options ... metrics.Option) httpware.Middleware {
+func Metrics(recorder metrics.Recorder, options ...metrics.Option) httpware.Middleware {
 	config := metrics.NewConfig(recorder, options...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
